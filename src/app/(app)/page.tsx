@@ -16,19 +16,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { avgStatus } from "@/lib/avg";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-const stats = [
-  { label: "Actieve kandidaten", value: 0, icon: UsersIcon },
-  { label: "Open vacatures", value: 0, icon: BriefcaseIcon },
-  { label: "AVG-acties", value: 0, icon: ShieldCheckIcon },
-  { label: "Contact-reminders", value: 0, icon: BellRingIcon },
-];
+export default async function DashboardPage() {
+  const supabase = await createClient();
 
-export default function DashboardPage() {
+  const [{ count: actieveKandidaten }, { data: actieveConsents }] =
+    await Promise.all([
+      supabase
+        .from("candidates")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "actief"),
+      supabase
+        .from("candidates")
+        .select("id, consents(granted_at, expires_at)")
+        .eq("status", "actief"),
+    ]);
+
+  const avgActies = (actieveConsents ?? []).filter((kandidaat) => {
+    const { status } = avgStatus(kandidaat.consents);
+    return status === "verloopt_binnenkort" || status === "verlopen";
+  }).length;
+
+  const stats = [
+    { label: "Actieve kandidaten", value: actieveKandidaten ?? 0, icon: UsersIcon },
+    { label: "Open vacatures", value: 0, icon: BriefcaseIcon },
+    { label: "AVG-acties", value: avgActies, icon: ShieldCheckIcon },
+    { label: "Contact-reminders", value: 0, icon: BellRingIcon },
+  ];
+
   return (
     <>
       <PageHeader
