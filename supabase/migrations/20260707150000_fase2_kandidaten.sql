@@ -102,10 +102,7 @@ create table public.consents (
   id uuid primary key default gen_random_uuid(),
   candidate_id uuid not null references public.candidates (id) on delete cascade,
   granted_at timestamptz not null default now(),
-  -- Altijd granted_at + 365 dagen (docs/PLAN.md fase 4); als generated
-  -- column kan de regel nergens in de app omzeild worden.
-  expires_at timestamptz not null
-    generated always as (granted_at + interval '365 days') stored,
+  expires_at timestamptz not null default (now() + interval '365 days'),
   method text not null,
   status public.consent_status not null default 'actief',
   reminder_sent_at timestamptz
@@ -113,6 +110,27 @@ create table public.consents (
 
 comment on table public.consents is
   'AVG-toestemmingsrecords; verlengen maakt een nieuw record aan.';
+
+-- Altijd granted_at + 365 dagen (docs/PLAN.md fase 4). Een generated column
+-- mag hier niet (timestamptz + interval is niet immutable), dus een trigger
+-- dwingt de regel af — ook als iemand expires_at rechtstreeks probeert te
+-- wijzigen.
+create function public.set_consent_expiry()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  new.expires_at := new.granted_at + interval '365 days';
+  return new;
+end;
+$$;
+
+create trigger consents_set_expiry
+  before insert or update on public.consents
+  for each row
+  execute function public.set_consent_expiry();
 
 alter table public.consents enable row level security;
 
