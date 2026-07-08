@@ -34,7 +34,7 @@ De UI is volledig Nederlandstalig.
 | [docs/ARCHITECTUUR.md](docs/ARCHITECTUUR.md) | Stack, datamodel, AVG-flows, notificaties, beveiliging |
 | [docs/DESIGN.md](docs/DESIGN.md) | Design-systeem: kleuren, typografie, schermen |
 
-## Snelstart (na Fase 1)
+## Snelstart
 
 ```bash
 npm install
@@ -43,6 +43,12 @@ npm run dev                  # http://localhost:3000
 ```
 
 Benodigd: een gratis [Supabase](https://supabase.com)-project en (voor deployment) een [Vercel](https://vercel.com)-account.
+
+Eenmalige inrichting van het Supabase-project:
+
+1. **Migraties draaien** — voer de bestanden uit `supabase/migrations/` uit in de SQL-editor van het dashboard, of met de CLI: `supabase link && supabase db push`.
+2. **Registratie uitzetten** — dashboard → Authentication → Sign In / Up → "Allow new users to sign up" uit (recruiters worden handmatig uitgenodigd).
+3. **Recruiter aanmaken** — dashboard → Authentication → Users → *Add user* (e-mail + wachtwoord). Een profiel wordt automatisch aangemaakt; de naam is aan te passen via user metadata-veld `full_name`.
 
 ## Agent-skills
 

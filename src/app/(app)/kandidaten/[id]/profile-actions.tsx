@@ -1,0 +1,161 @@
+"use client";
+
+import * as React from "react";
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  BriefcaseIcon,
+  MoreVerticalIcon,
+  PhoneIcon,
+  ShieldCheckIcon,
+  Trash2Icon,
+} from "lucide-react";
+
+import { deleteCandidate, setCandidateStatus } from "../actions";
+import { CandidateSheet } from "../candidate-sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { Candidate } from "@/lib/types";
+
+function UitgesteldeActie({
+  icon: Icon,
+  label,
+  fase,
+}: {
+  icon: typeof PhoneIcon;
+  label: string;
+  fase: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span tabIndex={0}>
+          <Button variant="outline" disabled>
+            <Icon />
+            <span className="hidden lg:inline">{label}</span>
+          </Button>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>Beschikbaar vanaf {fase}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+export function ProfileActions({ candidate }: { candidate: Candidate }) {
+  const [verwijderOpen, setVerwijderOpen] = React.useState(false);
+  const [archiveerOpen, setArchiveerOpen] = React.useState(false);
+  const isGearchiveerd = candidate.status === "gearchiveerd";
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <CandidateSheet candidate={candidate} />
+      <UitgesteldeActie icon={PhoneIcon} label="Contactmoment" fase="fase 5" />
+      <UitgesteldeActie
+        icon={BriefcaseIcon}
+        label="Koppel aan vacature"
+        fase="fase 3"
+      />
+      <UitgesteldeActie
+        icon={ShieldCheckIcon}
+        label="Verleng AVG"
+        fase="fase 4"
+      />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon">
+            <MoreVerticalIcon />
+            <span className="sr-only">Meer acties</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setArchiveerOpen(true)}>
+            {isGearchiveerd ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
+            {isGearchiveerd ? "Terugzetten naar actief" : "Archiveren"}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={() => setVerwijderOpen(true)}
+          >
+            <Trash2Icon />
+            Verwijderen
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={archiveerOpen} onOpenChange={setArchiveerOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isGearchiveerd
+                ? "Kandidaat terugzetten naar actief?"
+                : "Kandidaat archiveren?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isGearchiveerd
+                ? `${candidate.first_name} ${candidate.last_name} wordt weer zichtbaar in het actieve overzicht.`
+                : `${candidate.first_name} ${candidate.last_name} verdwijnt uit het actieve overzicht, maar alle gegevens blijven bewaard.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                setCandidateStatus(
+                  candidate.id,
+                  isGearchiveerd ? "actief" : "gearchiveerd"
+                )
+              }
+            >
+              {isGearchiveerd ? "Terugzetten" : "Archiveren"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={verwijderOpen} onOpenChange={setVerwijderOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kandidaat definitief verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Alle gegevens van {candidate.first_name} {candidate.last_name}{" "}
+              worden verwijderd: profiel, notities, AVG-records en het CV. Dit
+              kan niet ongedaan worden gemaakt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => deleteCandidate(candidate.id)}
+            >
+              Definitief verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

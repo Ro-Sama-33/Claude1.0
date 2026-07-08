@@ -1,0 +1,11 @@
+# Supabase CLI-configuratie voor lokale ontwikkeling (`supabase start`).
+# Voor het gehoste project gelden de instellingen in het Supabase-dashboard;
+# zet daar in elk geval "Allow new users to sign up" UIT (Auth → Sign In / Up):
+# recruiters worden handmatig uitgenodigd (docs/ARCHITECTUUR.md → Beveiliging).
+
+project_id = "jip-ats"
+
+[auth]
+site_url = "http://localhost:3000"
+# Open registratie uit — accounts worden via het dashboard of de Admin API aangemaakt.
+enable_signup = false
