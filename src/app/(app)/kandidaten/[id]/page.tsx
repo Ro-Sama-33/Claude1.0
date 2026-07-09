@@ -144,6 +144,24 @@ export default async function KandidaatProfielPage({
         </div>
       )}
 
+      {kandidaat.status === "geanonimiseerd" && (
+        <div className="mb-4 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground">
+          Deze kandidaat is geanonimiseerd. De persoonsgegevens zijn verwijderd;
+          alleen een AVG-audittrail blijft bewaard.
+        </div>
+      )}
+
+      {kandidaat.status === "actief" && avg.status === "verlopen" && (
+        <div
+          role="alert"
+          className="mb-4 flex items-start gap-2 rounded-lg bg-danger-soft px-3 py-2.5 text-sm text-danger-deep"
+        >
+          <CircleAlertIcon className="mt-0.5 size-4 shrink-0" />
+          De AVG-toestemming is verlopen. Verleng de toestemming, of anonimiseer
+          of verwijder de kandidaat via de acties rechtsboven.
+        </div>
+      )}
+
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">

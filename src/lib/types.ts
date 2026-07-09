@@ -214,6 +214,41 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_stages: {
         Row: {
           color: string
@@ -288,11 +323,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      run_daily_checks: { Args: never; Returns: undefined }
     }
     Enums: {
       candidate_status: "actief" | "gearchiveerd" | "geanonimiseerd"
       consent_status: "actief" | "verloopt_binnenkort" | "verlopen"
+      notification_type: "avg_verloopt" | "avg_verlopen" | "geen_contact_3m"
       vacancy_status: "open" | "gesloten"
     }
     CompositeTypes: {
@@ -423,6 +459,7 @@ export const Constants = {
     Enums: {
       candidate_status: ["actief", "gearchiveerd", "geanonimiseerd"],
       consent_status: ["actief", "verloopt_binnenkort", "verlopen"],
+      notification_type: ["avg_verloopt", "avg_verlopen", "geen_contact_3m"],
       vacancy_status: ["open", "gesloten"],
     },
   },
@@ -442,3 +479,7 @@ export type PipelineStage =
   Database["public"]["Tables"]["pipeline_stages"]["Row"];
 export type Application =
   Database["public"]["Tables"]["applications"]["Row"];
+export type Notification =
+  Database["public"]["Tables"]["notifications"]["Row"];
+export type NotificationType =
+  Database["public"]["Enums"]["notification_type"];

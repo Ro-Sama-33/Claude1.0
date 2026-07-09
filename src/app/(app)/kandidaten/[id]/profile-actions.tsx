@@ -6,13 +6,18 @@ import {
   ArchiveRestoreIcon,
   MoreVerticalIcon,
   PhoneIcon,
-  ShieldCheckIcon,
+  UserXIcon,
   Trash2Icon,
 } from "lucide-react";
 
-import { deleteCandidate, setCandidateStatus } from "../actions";
+import {
+  anonymizeCandidate,
+  deleteCandidate,
+  setCandidateStatus,
+} from "../actions";
 import { CandidateSheet } from "../candidate-sheet";
 import { LinkToVacancy, type LinkableVacancy } from "./link-to-vacancy";
+import { RenewAvgButton } from "@/components/avg/renew-avg-button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,21 +76,27 @@ export function ProfileActions({
 }) {
   const [verwijderOpen, setVerwijderOpen] = React.useState(false);
   const [archiveerOpen, setArchiveerOpen] = React.useState(false);
+  const [anonimiseerOpen, setAnonimiseerOpen] = React.useState(false);
   const isGearchiveerd = candidate.status === "gearchiveerd";
+  const isGeanonimiseerd = candidate.status === "geanonimiseerd";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <CandidateSheet candidate={candidate} />
-      <UitgesteldeActie icon={PhoneIcon} label="Contactmoment" fase="fase 5" />
-      <LinkToVacancy
-        candidateId={candidate.id}
-        vacancies={linkableVacancies}
-      />
-      <UitgesteldeActie
-        icon={ShieldCheckIcon}
-        label="Verleng AVG"
-        fase="fase 4"
-      />
+      {!isGeanonimiseerd && (
+        <>
+          <CandidateSheet candidate={candidate} />
+          <UitgesteldeActie
+            icon={PhoneIcon}
+            label="Contactmoment"
+            fase="fase 5"
+          />
+          <LinkToVacancy
+            candidateId={candidate.id}
+            vacancies={linkableVacancies}
+          />
+          <RenewAvgButton candidateId={candidate.id} compactLabel />
+        </>
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -95,11 +106,19 @@ export function ProfileActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setArchiveerOpen(true)}>
-            {isGearchiveerd ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
-            {isGearchiveerd ? "Terugzetten naar actief" : "Archiveren"}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {!isGeanonimiseerd && (
+            <>
+              <DropdownMenuItem onSelect={() => setArchiveerOpen(true)}>
+                {isGearchiveerd ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
+                {isGearchiveerd ? "Terugzetten naar actief" : "Archiveren"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setAnonimiseerOpen(true)}>
+                <UserXIcon />
+                Anonimiseren
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem
             variant="destructive"
             onSelect={() => setVerwijderOpen(true)}
@@ -135,6 +154,31 @@ export function ProfileActions({
               }
             >
               {isGearchiveerd ? "Terugzetten" : "Archiveren"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={anonimiseerOpen} onOpenChange={setAnonimiseerOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kandidaat anonimiseren?</AlertDialogTitle>
+            <AlertDialogDescription>
+              De persoonsgegevens van {candidate.first_name}{" "}
+              {candidate.last_name} worden overschreven met
+              &ldquo;[verwijderd]&rdquo;, het CV en de notities worden gewist en
+              koppelingen met vacatures verdwijnen. De kandidaat blijft als
+              geanonimiseerd record bestaan (AVG-audit). Dit kan niet ongedaan
+              worden gemaakt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => anonymizeCandidate(candidate.id)}
+            >
+              Anonimiseren
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
