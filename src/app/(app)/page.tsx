@@ -9,6 +9,7 @@ import {
 
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { ContactMomentSheet } from "@/app/(app)/contactmomenten/contact-moment-sheet";
 import { RenewAvgButton } from "@/components/avg/renew-avg-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,10 +31,14 @@ export const metadata: Metadata = {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
+  const drieMaanden = new Date();
+  drieMaanden.setMonth(drieMaanden.getMonth() - 3);
+
   const [
     { count: actieveKandidaten },
     { count: openVacatures },
     { data: actieveConsents },
+    { data: geenContact },
   ] = await Promise.all([
     supabase
       .from("candidates")
@@ -47,6 +52,14 @@ export default async function DashboardPage() {
       .from("candidates")
       .select("id, first_name, last_name, consents(granted_at, expires_at)")
       .eq("status", "actief"),
+    supabase
+      .from("candidates")
+      .select("id, first_name, last_name, last_contact_at")
+      .eq("status", "actief")
+      .not("last_contact_at", "is", null)
+      .lt("last_contact_at", drieMaanden.toISOString())
+      .order("last_contact_at", { ascending: true })
+      .limit(8),
   ]);
 
   const avgActies = (actieveConsents ?? [])
@@ -64,11 +77,17 @@ export default async function DashboardPage() {
       return (a.expiresAt?.getTime() ?? 0) - (b.expiresAt?.getTime() ?? 0);
     });
 
+  const contactReminders = geenContact ?? [];
+
   const stats = [
     { label: "Actieve kandidaten", value: actieveKandidaten ?? 0, icon: UsersIcon },
     { label: "Open vacatures", value: openVacatures ?? 0, icon: BriefcaseIcon },
     { label: "AVG-acties", value: avgActies.length, icon: ShieldCheckIcon },
-    { label: "Contact-reminders", value: 0, icon: BellRingIcon },
+    {
+      label: "Contact-reminders",
+      value: contactReminders.length,
+      icon: BellRingIcon,
+    },
   ];
 
   return (
@@ -163,11 +182,39 @@ export default async function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <EmptyState
-              icon={BellRingIcon}
-              title="Geen contact-reminders"
-              description="Vanaf fase 5 houdt JIP-ATS bij wanneer je iedere kandidaat voor het laatst sprak."
-            />
+            {contactReminders.length === 0 ? (
+              <EmptyState
+                icon={BellRingIcon}
+                title="Geen contact-reminders"
+                description="Iedereen die je hebt gesproken, is binnen 3 maanden gesproken. Leg contactmomenten vast om dit bij te houden."
+              />
+            ) : (
+              <ul className="flex flex-col divide-y">
+                {contactReminders.map((k) => (
+                  <li
+                    key={k.id}
+                    className="flex items-center justify-between gap-3 py-2.5 first:pt-0"
+                  >
+                    <div className="min-w-0">
+                      <Link
+                        href={`/kandidaten/${k.id}`}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {k.first_name} {k.last_name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        Laatst gesproken op {formatDate(k.last_contact_at)}
+                      </p>
+                    </div>
+                    <ContactMomentSheet
+                      candidateId={k.id}
+                      candidateName={`${k.first_name} ${k.last_name}`}
+                      triggerLabel="Plan"
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>

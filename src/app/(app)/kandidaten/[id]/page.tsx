@@ -7,6 +7,7 @@ import {
   DownloadIcon,
   FileTextIcon,
   MapPinIcon,
+  PhoneIcon,
   ShieldCheckIcon,
 } from "lucide-react";
 
@@ -27,6 +28,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { avgBadge, avgStatus } from "@/lib/avg";
+import { contactType, type ContactType } from "@/lib/contact";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -70,7 +72,7 @@ export default async function KandidaatProfielPage({
   const { data: kandidaat } = await supabase
     .from("candidates")
     .select(
-      "*, consents(id, granted_at, expires_at, method, status), candidate_notes(id, body, created_at, updated_at, created_by, author:profiles(full_name)), applications(id, vacancy:vacancies(id, title, status), stage:pipeline_stages(name, color))"
+      "*, consents(id, granted_at, expires_at, method, status), candidate_notes(id, body, created_at, updated_at, created_by, author:profiles(full_name)), applications(id, vacancy:vacancies(id, title, status), stage:pipeline_stages(name, color)), contact_moments(id, type, occurred_at, note, author:profiles(full_name))"
     )
     .eq("id", id)
     .maybeSingle();
@@ -97,9 +99,35 @@ export default async function KandidaatProfielPage({
   const notities = ([...kandidaat.candidate_notes] as NoteView[]).sort(
     (a, b) => (a.created_at < b.created_at ? 1 : -1)
   );
-  const consents = [...kandidaat.consents].sort((a, b) =>
-    a.granted_at < b.granted_at ? 1 : -1
-  );
+
+  // Gecombineerde tijdlijn: contactmomenten + AVG-gebeurtenissen, nieuwste eerst.
+  const nu = Date.now();
+  type TimelineEvent =
+    | {
+        kind: "contact";
+        at: string;
+        contactType: ContactType;
+        note: string | null;
+        author: string | null;
+        planned: boolean;
+      }
+    | { kind: "avg"; at: string; method: string; expiresAt: string };
+  const tijdlijn: TimelineEvent[] = [
+    ...kandidaat.contact_moments.map((m) => ({
+      kind: "contact" as const,
+      at: m.occurred_at,
+      contactType: m.type,
+      note: m.note,
+      author: m.author?.full_name?.trim() || null,
+      planned: new Date(m.occurred_at).getTime() > nu,
+    })),
+    ...kandidaat.consents.map((c) => ({
+      kind: "avg" as const,
+      at: c.granted_at,
+      method: c.method,
+      expiresAt: c.expires_at,
+    })),
+  ].sort((a, b) => (a.at < b.at ? 1 : -1));
 
   let cvUrl: string | null = null;
   let cvIsPdf = false;
@@ -346,27 +374,64 @@ export default async function KandidaatProfielPage({
 
           <TabsContent value="tijdlijn">
             <div className="rounded-lg border bg-card p-4">
-              <ul className="flex flex-col gap-3">
-                {consents.map((consent) => (
-                  <li key={consent.id} className="flex items-start gap-3">
-                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-success-soft">
-                      <ShieldCheckIcon className="size-3.5 text-success-deep" />
-                    </span>
-                    <div className="text-sm">
-                      <p className="font-medium">
-                        AVG-toestemming vastgelegd ({consent.method.toLowerCase()})
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTime(consent.granted_at)} · geldig tot{" "}
-                        {formatDate(consent.expires_at)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
-                Contactmomenten verschijnen hier vanaf fase 5.
-              </p>
+              {tijdlijn.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Nog geen gebeurtenissen.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {tijdlijn.map((event, i) =>
+                    event.kind === "contact" ? (
+                      <li key={`c-${i}`} className="flex items-start gap-3">
+                        <span
+                          className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"
+                          style={{
+                            backgroundColor: `${contactType(event.contactType).color}1a`,
+                          }}
+                        >
+                          <PhoneIcon
+                            className="size-3.5"
+                            style={{ color: contactType(event.contactType).color }}
+                          />
+                        </span>
+                        <div className="min-w-0 text-sm">
+                          <p className="flex flex-wrap items-center gap-2 font-medium">
+                            {contactType(event.contactType).label}
+                            {event.planned && (
+                              <Badge variant="secondary">Gepland</Badge>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDateTime(event.at)}
+                            {event.author ? ` · ${event.author}` : ""}
+                          </p>
+                          {event.note && (
+                            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+                              {event.note}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    ) : (
+                      <li key={`a-${i}`} className="flex items-start gap-3">
+                        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-success-soft">
+                          <ShieldCheckIcon className="size-3.5 text-success-deep" />
+                        </span>
+                        <div className="text-sm">
+                          <p className="font-medium">
+                            AVG-toestemming vastgelegd (
+                            {event.method.toLowerCase()})
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDateTime(event.at)} · geldig tot{" "}
+                            {formatDate(event.expiresAt)}
+                          </p>
+                        </div>
+                      </li>
+                    )
+                  )}
+                </ul>
+              )}
             </div>
           </TabsContent>
         </Tabs>

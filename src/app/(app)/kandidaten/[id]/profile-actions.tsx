@@ -5,7 +5,6 @@ import {
   ArchiveIcon,
   ArchiveRestoreIcon,
   MoreVerticalIcon,
-  PhoneIcon,
   UserXIcon,
   Trash2Icon,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import {
 } from "../actions";
 import { CandidateSheet } from "../candidate-sheet";
 import { LinkToVacancy, type LinkableVacancy } from "./link-to-vacancy";
+import { ContactMomentSheet } from "@/app/(app)/contactmomenten/contact-moment-sheet";
 import { RenewAvgButton } from "@/components/avg/renew-avg-button";
 import {
   AlertDialog,
@@ -36,36 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import type { Candidate } from "@/lib/types";
-
-function UitgesteldeActie({
-  icon: Icon,
-  label,
-  fase,
-}: {
-  icon: typeof PhoneIcon;
-  label: string;
-  fase: string;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span tabIndex={0}>
-          <Button variant="outline" disabled>
-            <Icon />
-            <span className="hidden lg:inline">{label}</span>
-          </Button>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>Beschikbaar vanaf {fase}</TooltipContent>
-    </Tooltip>
-  );
-}
 
 export function ProfileActions({
   candidate,
@@ -85,10 +56,10 @@ export function ProfileActions({
       {!isGeanonimiseerd && (
         <>
           <CandidateSheet candidate={candidate} />
-          <UitgesteldeActie
-            icon={PhoneIcon}
-            label="Contactmoment"
-            fase="fase 5"
+          <ContactMomentSheet
+            candidateId={candidate.id}
+            candidateName={`${candidate.first_name} ${candidate.last_name}`}
+            compactLabel
           />
           <LinkToVacancy
             candidateId={candidate.id}
