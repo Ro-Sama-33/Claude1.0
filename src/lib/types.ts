@@ -22,6 +22,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          position: number
+          stage_id: string
+          updated_at: string
+          vacancy_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          position?: number
+          stage_id: string
+          updated_at?: string
+          vacancy_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          position?: number
+          stage_id?: string
+          updated_at?: string
+          vacancy_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_vacancy_id_fkey"
+            columns: ["vacancy_id"]
+            isOneToOne: false
+            referencedRelation: "vacancies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_notes: {
         Row: {
           body: string
@@ -162,6 +214,65 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipeline_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          position: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          position: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -183,16 +294,42 @@ export type Database = {
         }
         Relationships: []
       }
+      vacancies: {
+        Row: {
+          created_at: string
+          id: string
+          status: Database["public"]["Enums"]["vacancy_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["vacancy_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["vacancy_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      run_daily_checks: { Args: never; Returns: undefined }
     }
     Enums: {
       candidate_status: "actief" | "gearchiveerd" | "geanonimiseerd"
       consent_status: "actief" | "verloopt_binnenkort" | "verlopen"
+      notification_type: "avg_verloopt" | "avg_verlopen" | "geen_contact_3m"
+      vacancy_status: "open" | "gesloten"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -322,6 +459,8 @@ export const Constants = {
     Enums: {
       candidate_status: ["actief", "gearchiveerd", "geanonimiseerd"],
       consent_status: ["actief", "verloopt_binnenkort", "verlopen"],
+      notification_type: ["avg_verloopt", "avg_verlopen", "geen_contact_3m"],
+      vacancy_status: ["open", "gesloten"],
     },
   },
 } as const
@@ -334,3 +473,13 @@ export type CandidateNote =
 export type Consent = Database["public"]["Tables"]["consents"]["Row"];
 export type CandidateStatus =
   Database["public"]["Enums"]["candidate_status"];
+export type Vacancy = Database["public"]["Tables"]["vacancies"]["Row"];
+export type VacancyStatus = Database["public"]["Enums"]["vacancy_status"];
+export type PipelineStage =
+  Database["public"]["Tables"]["pipeline_stages"]["Row"];
+export type Application =
+  Database["public"]["Tables"]["applications"]["Row"];
+export type Notification =
+  Database["public"]["Tables"]["notifications"]["Row"];
+export type NotificationType =
+  Database["public"]["Enums"]["notification_type"];

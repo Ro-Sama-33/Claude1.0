@@ -42,7 +42,7 @@ export default async function KandidatenPage({
 
   let query = supabase
     .from("candidates")
-    .select("*, consents(granted_at, expires_at)")
+    .select("*, consents(granted_at, expires_at), applications(count)")
     .order("created_at", { ascending: false });
 
   if (statusFilter === "actief" || statusFilter === "gearchiveerd") {
@@ -158,8 +158,9 @@ export default async function KandidatenPage({
                         <TableCell>
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          —
+                        <TableCell className="text-muted-foreground tabular-nums">
+                          {(kandidaat.applications as { count: number }[])[0]
+                            ?.count || "—"}
                         </TableCell>
                       </TableRow>
                     );
@@ -172,8 +173,8 @@ export default async function KandidatenPage({
           <p className="mt-3 text-xs text-muted-foreground">
             {kandidaten.length}{" "}
             {kandidaten.length === 1 ? "kandidaat" : "kandidaten"}
-            {filtersActief ? " (gefilterd)" : ""} · gekoppelde vacatures volgen
-            in fase 3, laatst gesproken in fase 5
+            {filtersActief ? " (gefilterd)" : ""} · laatst gesproken volgt in
+            fase 5
           </p>
         </>
       )}

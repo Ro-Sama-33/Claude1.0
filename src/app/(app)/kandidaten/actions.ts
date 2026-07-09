@@ -277,7 +277,8 @@ export async function deleteCandidate(candidateId: string) {
     await supabase.storage.from("cvs").remove([candidate.cv_path]);
   }
 
-  // Notities, contactmomenten en consents cascaderen mee (migratie fase 2).
+  // Notities, contactmomenten, consents, applications en notificaties
+  // cascaderen mee (migraties fase 2–4).
   const { error } = await supabase
     .from("candidates")
     .delete()
@@ -286,6 +287,91 @@ export async function deleteCandidate(candidateId: string) {
 
   revalidatePath("/kandidaten");
   redirect("/kandidaten");
+}
+
+/**
+ * Verlengt de AVG-toestemming: nieuw consent-record (audit-trail), opnieuw
+ * 365 dagen vanaf nu (via de default/trigger op consents). Openstaande
+ * AVG-meldingen voor de kandidaat worden afgevinkt.
+ */
+export async function renewConsent(candidateId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("consents")
+    .insert({ candidate_id: candidateId, method: "Verlenging" });
+  if (error) return;
+
+  await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("candidate_id", candidateId)
+    .in("type", ["avg_verloopt", "avg_verlopen"])
+    .is("read_at", null);
+
+  revalidatePath("/");
+  revalidatePath("/kandidaten");
+  revalidatePath(`/kandidaten/${candidateId}`);
+}
+
+/**
+ * Anonimiseert een kandidaat (AVG): persoonsgegevens overschreven, CV uit
+ * Storage verwijderd, notities gewist, funnel-koppelingen verwijderd, status
+ * `geanonimiseerd`. Consents blijven als audit-trail (bevatten geen PII).
+ */
+export async function anonymizeCandidate(candidateId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: candidate } = await supabase
+    .from("candidates")
+    .select("cv_path, status")
+    .eq("id", candidateId)
+    .single();
+  if (!candidate || candidate.status === "geanonimiseerd") return;
+
+  if (candidate.cv_path) {
+    await supabase.storage.from("cvs").remove([candidate.cv_path]);
+  }
+
+  await supabase.from("candidate_notes").delete().eq("candidate_id", candidateId);
+  await supabase.from("applications").delete().eq("candidate_id", candidateId);
+  await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("candidate_id", candidateId)
+    .is("read_at", null);
+
+  const { error } = await supabase
+    .from("candidates")
+    .update({
+      first_name: "[verwijderd]",
+      last_name: "[verwijderd]",
+      email: null,
+      phone: null,
+      city: null,
+      current_role: null,
+      salary_indication: null,
+      hours_per_week: null,
+      contract_preference: null,
+      availability: null,
+      source: null,
+      cv_path: null,
+      status: "geanonimiseerd",
+    })
+    .eq("id", candidateId);
+  if (error) return;
+
+  revalidatePath("/");
+  revalidatePath("/kandidaten");
+  revalidatePath(`/kandidaten/${candidateId}`);
 }
 
 export type NoteFormState =
