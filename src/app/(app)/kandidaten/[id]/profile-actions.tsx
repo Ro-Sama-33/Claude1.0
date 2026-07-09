@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   ArchiveIcon,
   ArchiveRestoreIcon,
-  BriefcaseIcon,
   MoreVerticalIcon,
   PhoneIcon,
   ShieldCheckIcon,
@@ -13,6 +12,7 @@ import {
 
 import { deleteCandidate, setCandidateStatus } from "../actions";
 import { CandidateSheet } from "../candidate-sheet";
+import { LinkToVacancy, type LinkableVacancy } from "./link-to-vacancy";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +62,13 @@ function UitgesteldeActie({
   );
 }
 
-export function ProfileActions({ candidate }: { candidate: Candidate }) {
+export function ProfileActions({
+  candidate,
+  linkableVacancies,
+}: {
+  candidate: Candidate;
+  linkableVacancies: LinkableVacancy[];
+}) {
   const [verwijderOpen, setVerwijderOpen] = React.useState(false);
   const [archiveerOpen, setArchiveerOpen] = React.useState(false);
   const isGearchiveerd = candidate.status === "gearchiveerd";
@@ -71,10 +77,9 @@ export function ProfileActions({ candidate }: { candidate: Candidate }) {
     <div className="flex flex-wrap items-center gap-2">
       <CandidateSheet candidate={candidate} />
       <UitgesteldeActie icon={PhoneIcon} label="Contactmoment" fase="fase 5" />
-      <UitgesteldeActie
-        icon={BriefcaseIcon}
-        label="Koppel aan vacature"
-        fase="fase 3"
+      <LinkToVacancy
+        candidateId={candidate.id}
+        vacancies={linkableVacancies}
       />
       <UitgesteldeActie
         icon={ShieldCheckIcon}

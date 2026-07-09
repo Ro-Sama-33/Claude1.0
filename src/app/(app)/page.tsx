@@ -26,17 +26,24 @@ export const metadata: Metadata = {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ count: actieveKandidaten }, { data: actieveConsents }] =
-    await Promise.all([
-      supabase
-        .from("candidates")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "actief"),
-      supabase
-        .from("candidates")
-        .select("id, consents(granted_at, expires_at)")
-        .eq("status", "actief"),
-    ]);
+  const [
+    { count: actieveKandidaten },
+    { count: openVacatures },
+    { data: actieveConsents },
+  ] = await Promise.all([
+    supabase
+      .from("candidates")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "actief"),
+    supabase
+      .from("vacancies")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "open"),
+    supabase
+      .from("candidates")
+      .select("id, consents(granted_at, expires_at)")
+      .eq("status", "actief"),
+  ]);
 
   const avgActies = (actieveConsents ?? []).filter((kandidaat) => {
     const { status } = avgStatus(kandidaat.consents);
@@ -45,7 +52,7 @@ export default async function DashboardPage() {
 
   const stats = [
     { label: "Actieve kandidaten", value: actieveKandidaten ?? 0, icon: UsersIcon },
-    { label: "Open vacatures", value: 0, icon: BriefcaseIcon },
+    { label: "Open vacatures", value: openVacatures ?? 0, icon: BriefcaseIcon },
     { label: "AVG-acties", value: avgActies, icon: ShieldCheckIcon },
     { label: "Contact-reminders", value: 0, icon: BellRingIcon },
   ];
