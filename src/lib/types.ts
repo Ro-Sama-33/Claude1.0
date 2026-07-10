@@ -214,6 +214,51 @@ export type Database = {
           },
         ]
       }
+      contact_moments: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          occurred_at: string
+          type: Database["public"]["Enums"]["contact_type"]
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          type?: Database["public"]["Enums"]["contact_type"]
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          type?: Database["public"]["Enums"]["contact_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_moments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_moments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           candidate_id: string | null
@@ -328,6 +373,7 @@ export type Database = {
     Enums: {
       candidate_status: "actief" | "gearchiveerd" | "geanonimiseerd"
       consent_status: "actief" | "verloopt_binnenkort" | "verlopen"
+      contact_type: "gebeld" | "gemaild" | "gesprek" | "overig"
       notification_type: "avg_verloopt" | "avg_verlopen" | "geen_contact_3m"
       vacancy_status: "open" | "gesloten"
     }
@@ -459,6 +505,7 @@ export const Constants = {
     Enums: {
       candidate_status: ["actief", "gearchiveerd", "geanonimiseerd"],
       consent_status: ["actief", "verloopt_binnenkort", "verlopen"],
+      contact_type: ["gebeld", "gemaild", "gesprek", "overig"],
       notification_type: ["avg_verloopt", "avg_verlopen", "geen_contact_3m"],
       vacancy_status: ["open", "gesloten"],
     },
