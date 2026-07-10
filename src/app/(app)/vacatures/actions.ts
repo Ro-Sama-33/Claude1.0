@@ -17,6 +17,14 @@ const titleSchema = z
   .min(1, "Geef de vacature een titel.")
   .max(160, "Maximaal 160 tekens.");
 
+const optioneelVeld = (max: number) => (value: FormDataEntryValue | null) => {
+  const v = String(value ?? "").trim();
+  return v === "" ? null : v.slice(0, max);
+};
+
+const bedrijf = optioneelVeld(160);
+const locatie = optioneelVeld(160);
+
 export async function createVacancy(
   _prev: VacancyFormState,
   formData: FormData
@@ -34,7 +42,11 @@ export async function createVacancy(
 
   const { data: vacancy, error } = await supabase
     .from("vacancies")
-    .insert({ title: parsed.data })
+    .insert({
+      title: parsed.data,
+      company: bedrijf(formData.get("company")),
+      location: locatie(formData.get("location")),
+    })
     .select("id")
     .single();
   if (error || !vacancy) {
@@ -62,7 +74,12 @@ export async function updateVacancy(
 
   const { error } = await supabase
     .from("vacancies")
-    .update({ title: parsed.data, status })
+    .update({
+      title: parsed.data,
+      status,
+      company: bedrijf(formData.get("company")),
+      location: locatie(formData.get("location")),
+    })
     .eq("id", vacancyId);
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };

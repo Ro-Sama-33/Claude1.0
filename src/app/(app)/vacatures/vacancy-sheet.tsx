@@ -105,6 +105,26 @@ export function VacancySheet({ vacancy }: { vacancy?: Vacancy }) {
             )}
           </div>
 
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="company">Bedrijf</Label>
+            <Input
+              id="company"
+              name="company"
+              defaultValue={vacancy?.company ?? ""}
+              placeholder="Bijv. Jump Into People"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="location">Locatie</Label>
+            <Input
+              id="location"
+              name="location"
+              defaultValue={vacancy?.location ?? ""}
+              placeholder="Bijv. Utrecht"
+            />
+          </div>
+
           {!isNieuw && (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="status">Status</Label>

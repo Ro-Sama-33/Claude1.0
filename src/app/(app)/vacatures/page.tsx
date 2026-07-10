@@ -52,6 +52,8 @@ export default async function VacaturesPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>Titel</TableHead>
+                <TableHead>Bedrijf</TableHead>
+                <TableHead>Locatie</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Kandidaten</TableHead>
               </TableRow>
@@ -69,6 +71,12 @@ export default async function VacaturesPage() {
                       >
                         {vacancy.title}
                       </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {vacancy.company ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {vacancy.location ?? "—"}
                     </TableCell>
                     <TableCell>
                       <Badge

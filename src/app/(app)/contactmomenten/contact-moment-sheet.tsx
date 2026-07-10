@@ -96,7 +96,7 @@ export function ContactMomentSheet({
           <SheetDescription>
             {candidateName
               ? `Voor ${candidateName}. Een moment in de toekomst geldt als gepland.`
-              : "Een moment in de toekomst geldt als gepland (zichtbaar in de kalender)."}
+              : "Een moment in de toekomst geldt als gepland."}
           </SheetDescription>
         </SheetHeader>
 

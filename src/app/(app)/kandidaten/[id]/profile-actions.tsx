@@ -5,15 +5,10 @@ import {
   ArchiveIcon,
   ArchiveRestoreIcon,
   MoreVerticalIcon,
-  UserXIcon,
   Trash2Icon,
 } from "lucide-react";
 
-import {
-  anonymizeCandidate,
-  deleteCandidate,
-  setCandidateStatus,
-} from "../actions";
+import { deleteCandidate, setCandidateStatus } from "../actions";
 import { CandidateSheet } from "../candidate-sheet";
 import { LinkToVacancy, type LinkableVacancy } from "./link-to-vacancy";
 import { ContactMomentSheet } from "@/app/(app)/contactmomenten/contact-moment-sheet";
@@ -47,7 +42,6 @@ export function ProfileActions({
 }) {
   const [verwijderOpen, setVerwijderOpen] = React.useState(false);
   const [archiveerOpen, setArchiveerOpen] = React.useState(false);
-  const [anonimiseerOpen, setAnonimiseerOpen] = React.useState(false);
   const isGearchiveerd = candidate.status === "gearchiveerd";
   const isGeanonimiseerd = candidate.status === "geanonimiseerd";
 
@@ -82,10 +76,6 @@ export function ProfileActions({
               <DropdownMenuItem onSelect={() => setArchiveerOpen(true)}>
                 {isGearchiveerd ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
                 {isGearchiveerd ? "Terugzetten naar actief" : "Archiveren"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setAnonimiseerOpen(true)}>
-                <UserXIcon />
-                Anonimiseren
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
@@ -125,31 +115,6 @@ export function ProfileActions({
               }
             >
               {isGearchiveerd ? "Terugzetten" : "Archiveren"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={anonimiseerOpen} onOpenChange={setAnonimiseerOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Kandidaat anonimiseren?</AlertDialogTitle>
-            <AlertDialogDescription>
-              De persoonsgegevens van {candidate.first_name}{" "}
-              {candidate.last_name} worden overschreven met
-              &ldquo;[verwijderd]&rdquo;, het CV en de notities worden gewist en
-              koppelingen met vacatures verdwijnen. De kandidaat blijft als
-              geanonimiseerd record bestaan (AVG-audit). Dit kan niet ongedaan
-              worden gemaakt.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuleren</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => anonymizeCandidate(candidate.id)}
-            >
-              Anonimiseren
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

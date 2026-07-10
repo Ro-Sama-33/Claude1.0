@@ -22,6 +22,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          avg_email_body: string
+          avg_email_subject: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          avg_email_body?: string
+          avg_email_subject?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          avg_email_body?: string
+          avg_email_subject?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           candidate_id: string
@@ -341,22 +362,28 @@ export type Database = {
       }
       vacancies: {
         Row: {
+          company: string | null
           created_at: string
           id: string
+          location: string | null
           status: Database["public"]["Enums"]["vacancy_status"]
           title: string
           updated_at: string
         }
         Insert: {
+          company?: string | null
           created_at?: string
           id?: string
+          location?: string | null
           status?: Database["public"]["Enums"]["vacancy_status"]
           title: string
           updated_at?: string
         }
         Update: {
+          company?: string | null
           created_at?: string
           id?: string
+          location?: string | null
           status?: Database["public"]["Enums"]["vacancy_status"]
           title?: string
           updated_at?: string
@@ -530,3 +557,5 @@ export type Notification =
   Database["public"]["Tables"]["notifications"]["Row"];
 export type NotificationType =
   Database["public"]["Enums"]["notification_type"];
+export type AppSettings =
+  Database["public"]["Tables"]["app_settings"]["Row"];

@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 
+import { AvgEmailSettings } from "./avg-email-settings";
 import { StageManager, type StageRow } from "./stage-manager";
 import { PageHeader } from "@/components/layout/page-header";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -17,16 +16,27 @@ export const metadata: Metadata = {
   title: "Instellingen",
 };
 
+const AVG_FALLBACK = {
+  subject: "Verlenging AVG-toestemming",
+  body: "",
+};
+
 export default async function InstellingenPage() {
   const supabase = await createClient();
 
-  const [{ data: stageRows }, { data: appRows }] = await Promise.all([
-    supabase
-      .from("pipeline_stages")
-      .select("id, name, color, position")
-      .order("position", { ascending: true }),
-    supabase.from("applications").select("stage_id"),
-  ]);
+  const [{ data: stageRows }, { data: appRows }, { data: settings }] =
+    await Promise.all([
+      supabase
+        .from("pipeline_stages")
+        .select("id, name, color, position")
+        .order("position", { ascending: true }),
+      supabase.from("applications").select("stage_id"),
+      supabase
+        .from("app_settings")
+        .select("avg_email_subject, avg_email_body")
+        .eq("id", true)
+        .maybeSingle(),
+    ]);
 
   const aantalPerFase = new Map<string, number>();
   for (const app of appRows ?? []) {
@@ -44,7 +54,7 @@ export default async function InstellingenPage() {
     <>
       <PageHeader
         title="Instellingen"
-        description="Beheer de funnel-fases en de AVG-teksten."
+        description="Beheer de funnel-fases en de AVG-mail."
       />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -63,18 +73,17 @@ export default async function InstellingenPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">AVG</CardTitle>
+            <CardTitle className="text-lg">AVG-mail</CardTitle>
             <CardDescription>
-              Teksten van de toestemmingsmelding en (optioneel) de
-              verlengingsmail.
+              De algemene mail die kandidaten krijgen wanneer hun toestemming
+              binnen 30 dagen verloopt.
             </CardDescription>
-            <CardAction>
-              <Badge variant="secondary">Fase 4</Badge>
-            </CardAction>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Nog niet beschikbaar. Toestemming staat straks standaard aan:
-            365 dagen geldig, met een melding 30 dagen vóór de einddatum.
+          <CardContent>
+            <AvgEmailSettings
+              subject={settings?.avg_email_subject ?? AVG_FALLBACK.subject}
+              body={settings?.avg_email_body ?? AVG_FALLBACK.body}
+            />
           </CardContent>
         </Card>
       </div>

@@ -80,13 +80,29 @@ export default async function DashboardPage() {
   const contactReminders = geenContact ?? [];
 
   const stats = [
-    { label: "Actieve kandidaten", value: actieveKandidaten ?? 0, icon: UsersIcon },
-    { label: "Open vacatures", value: openVacatures ?? 0, icon: BriefcaseIcon },
-    { label: "AVG-acties", value: avgActies.length, icon: ShieldCheckIcon },
+    {
+      label: "Actieve kandidaten",
+      value: actieveKandidaten ?? 0,
+      icon: UsersIcon,
+      href: "/kandidaten",
+    },
+    {
+      label: "Open vacatures",
+      value: openVacatures ?? 0,
+      icon: BriefcaseIcon,
+      href: "/vacatures",
+    },
+    {
+      label: "AVG-acties",
+      value: avgActies.length,
+      icon: ShieldCheckIcon,
+      href: "/kandidaten",
+    },
     {
       label: "Contact-reminders",
       value: contactReminders.length,
       icon: BellRingIcon,
+      href: "/contactmomenten",
     },
   ];
 
@@ -99,21 +115,27 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="gap-2 py-5">
-            <CardHeader>
-              <CardDescription className="text-[0.78rem] font-medium">
-                {stat.label}
-              </CardDescription>
-              <CardAction>
-                <stat.icon className="size-4 text-muted-foreground" />
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">
-                {stat.value}
-              </p>
-            </CardContent>
-          </Card>
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            <Card className="gap-2 py-5 transition-colors hover:border-ring">
+              <CardHeader>
+                <CardDescription className="text-[0.78rem] font-medium">
+                  {stat.label}
+                </CardDescription>
+                <CardAction>
+                  <stat.icon className="size-4 text-muted-foreground" />
+                </CardAction>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {stat.value}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
