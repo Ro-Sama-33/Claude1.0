@@ -40,13 +40,13 @@ Toegankelijkheid: alle tekst/achtergrond-combinaties minimaal WCAG AA (4,5:1). P
 ## Schermen
 
 ### Layout
-Vaste zijbalk links (donker paars vlak, witte iconen + labels): Dashboard · Kandidaten · Vacatures · Kalender · Instellingen. Rechtsboven: notificatie-bel met teller en gebruikersmenu. Content max-breedte 1280px.
+Vaste zijbalk links (donker paars vlak, witte iconen + labels): Dashboard · Kandidaten · Vacatures · Contactmomenten · Instellingen. Rechtsboven: notificatie-bel met teller en gebruikersmenu. Content max-breedte 1280px.
 
 ### Dashboard
 Vier stat-tegels (actieve kandidaten, open vacatures, AVG-acties, contact-reminders) + twee lijsten: "AVG-acties nodig" en "Langer dan 3 maanden geen contact", beide met directe actieknoppen.
 
 ### Kandidaten (database, los van vacatures)
-Zoekbalk + filters (woonplaats, status, AVG-status) boven een tabel: naam · woonplaats · huidige functie · laatst gesproken · AVG-badge · gekoppelde vacatures. Rechtsboven de primaire knop **"+ Kandidaat toevoegen"** → formulier in een sheet/modal met secties *Contact*, *Arbeidsvoorwaarden*, *AVG-toestemming* (verplicht) en *CV-upload* (sleepvlak, PDF/Word).
+Zoekbalk + filters (woonplaats, functie, vacature, status) boven een tabel: naam · woonplaats · huidige functie · laatst gesproken · AVG-badge · gekoppelde vacatures. Rechtsboven de primaire knop **"+ Kandidaat toevoegen"** → formulier in een sheet/modal met secties *Contact* (e-mail verplicht), *Arbeidsvoorwaarden* en *CV-upload* (sleepvlak, PDF/Word). De AVG-toestemming is standaard voor elke kandidaat: die wordt automatisch vastgelegd (365 dagen) en per e-mail beheerd — er is dus geen keuze bij het aanmaken en geen AVG-filter in het overzicht.
 
 ### Kandidaatprofiel
 Kop: naam, woonplaats, AVG-badge, "laatst gesproken", acties (Bewerken · Contactmoment · Koppel aan vacature · Verleng AVG). Twee kolommen:
@@ -54,14 +54,14 @@ Kop: naam, woonplaats, AVG-badge, "laatst gesproken", acties (Bewerken · Contac
 - rechts: tabs **CV** (inline PDF-viewer) · **Notities** · **Tijdlijn** (contactmomenten + AVG-gebeurtenissen)
 
 ### Vacatures & funnel
-Vacaturelijst (titel, status, aantal kandidaten) → detail = kanban-bord: kolommen zijn de zelf ingestelde fases (kolomkop in de fase-kleur), kaarten tonen naam + woonplaats + laatst gesproken, drag & drop tussen kolommen.
+Vacaturelijst (titel, bedrijf, locatie, status, aantal kandidaten) → detail = kanban-bord: kolommen zijn de zelf ingestelde fases (kolomkop in de fase-kleur), kaarten tonen naam + woonplaats + laatst gesproken, drag & drop tussen kolommen. Bedrijf en locatie zijn optionele velden bij de vacature.
 
-### Kalender
-Maandweergave met contactmomenten (kleur per type), klik op dag = moment toevoegen. Zijpaneel: komende geplande momenten + kandidaten die aandacht nodig hebben.
+### Contactmomenten
+Overzicht van alle contactmomenten met kandidaten in één tabel: kandidaat (met type-stip, datum/tijd en "Gepland"-badge) · contactgegevens · functie · notitie. Bovenaan één keuze om te sorteren/filteren op periode (laatst gesproken · oudste eerst · afgelopen week · maand · 3 maanden). Klik op een kandidaat → profiel. Een contactmoment maak je hier of vanaf het profiel; het verschijnt op beide plekken.
 
 ### Instellingen
 - **Funnel-fases:** lijst met sleep-handvatten, naam en kleur bewerkbaar, fase toevoegen/verwijderen (verwijderen alleen als er geen kandidaten in staan, anders eerst verplaatsen)
-- **AVG:** teksten van de toestemmingsmelding en (optioneel) de verlengingsmail
+- **AVG-mail:** één bewerkbare, algemene mailtekst (onderwerp + tekst met plaatshouders `{{naam}}` / `{{einddatum}}`), plus "nu versturen" naar iedereen wiens toestemming binnen 30 dagen verloopt
 
 ## Skills bij het bouwen
 

@@ -113,6 +113,11 @@ export default async function VacatureDetailPage({
         <Badge variant={vacancy.status === "open" ? "success" : "secondary"}>
           {vacancy.status === "open" ? "Open" : "Gesloten"}
         </Badge>
+        {(vacancy.company || vacancy.location) && (
+          <span>
+            {[vacancy.company, vacancy.location].filter(Boolean).join(" · ")}
+          </span>
+        )}
         <span>
           {totaal} {totaal === 1 ? "kandidaat" : "kandidaten"} in de funnel
         </span>

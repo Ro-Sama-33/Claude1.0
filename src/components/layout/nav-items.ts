@@ -1,7 +1,7 @@
 import {
   BriefcaseIcon,
-  CalendarIcon,
   LayoutDashboardIcon,
+  PhoneCallIcon,
   SettingsIcon,
   UsersIcon,
   type LucideIcon,
@@ -17,7 +17,7 @@ export const navItems: NavItem[] = [
   { title: "Dashboard", href: "/", icon: LayoutDashboardIcon },
   { title: "Kandidaten", href: "/kandidaten", icon: UsersIcon },
   { title: "Vacatures", href: "/vacatures", icon: BriefcaseIcon },
-  { title: "Kalender", href: "/kalender", icon: CalendarIcon },
+  { title: "Contactmomenten", href: "/contactmomenten", icon: PhoneCallIcon },
   { title: "Instellingen", href: "/instellingen", icon: SettingsIcon },
 ];
 

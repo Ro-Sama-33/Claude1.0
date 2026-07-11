@@ -21,15 +21,9 @@ import { cn } from "@/lib/utils";
 export const CONTRACT_OPTIES = [
   "Vast",
   "Tijdelijk",
+  "Uitzendwerk",
   "ZZP / freelance",
   "Geen voorkeur",
-];
-
-export const TOESTEMMING_OPTIES = [
-  "Telefonisch",
-  "Per e-mail",
-  "Via formulier",
-  "Anders",
 ];
 
 function Veld({
@@ -145,13 +139,19 @@ export function CandidateForm({
           </Veld>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Veld label="E-mailadres" htmlFor="email" error={fouten.email}>
+          <Veld
+            label="E-mailadres"
+            htmlFor="email"
+            verplicht
+            error={fouten.email}
+          >
             <Input
               id="email"
               name="email"
               type="email"
               defaultValue={candidate?.email ?? ""}
               aria-invalid={!!fouten.email}
+              required
             />
           </Veld>
           <Veld label="Telefoon" htmlFor="phone" error={fouten.phone}>
@@ -269,33 +269,11 @@ export function CandidateForm({
           <Separator />
           <Sectie titel="AVG-toestemming">
             <p className="text-xs text-muted-foreground">
-              Toestemming om gegevens te bewaren is verplicht en geldt 365
-              dagen. Je krijgt 30 dagen vóór de einddatum een melding om te
-              verlengen.
+              De AVG-toestemming wordt automatisch vastgelegd (geldt 365 dagen)
+              en verloopt-melding + verzoek gaan per e-mail. Daarom is het
+              e-mailadres verplicht. 30 dagen vóór de einddatum krijg je een
+              melding om te verlengen.
             </p>
-            <Veld
-              label="Toestemming vastgelegd via"
-              htmlFor="consent_method"
-              verplicht
-              error={fouten.consent_method}
-            >
-              <Select name="consent_method">
-                <SelectTrigger
-                  id="consent_method"
-                  className="w-full"
-                  aria-invalid={!!fouten.consent_method}
-                >
-                  <SelectValue placeholder="Maak een keuze" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TOESTEMMING_OPTIES.map((optie) => (
-                    <SelectItem key={optie} value={optie}>
-                      {optie}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Veld>
           </Sectie>
         </>
       )}

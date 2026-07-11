@@ -36,10 +36,13 @@ const candidateSchema = z.object({
     .trim()
     .min(1, "Achternaam is verplicht.")
     .max(100, "Maximaal 100 tekens."),
-  email: tekstveld(200).refine(
-    (v) => v === null || /^\S+@\S+\.\S+$/.test(v),
-    "Vul een geldig e-mailadres in."
-  ),
+  // E-mail is verplicht: de AVG-toestemming en verloopt-mail gaan hierheen.
+  email: z
+    .string()
+    .trim()
+    .min(1, "E-mailadres is verplicht (voor de AVG-mail).")
+    .max(200, "Maximaal 200 tekens.")
+    .refine((v) => /^\S+@\S+\.\S+$/.test(v), "Vul een geldig e-mailadres in."),
   phone: tekstveld(40),
   city: tekstveld(100),
   current_role: tekstveld(120),
@@ -127,12 +130,6 @@ export async function createCandidate(
   const parsed = candidateSchema.safeParse(rawCandidate(formData));
   const fieldErrors = verzamelFouten(parsed);
 
-  const consentMethod = String(formData.get("consent_method") ?? "").trim();
-  if (!consentMethod) {
-    fieldErrors.consent_method =
-      "Leg vast hoe de kandidaat toestemming heeft gegeven.";
-  }
-
   const cv = cvBestand(formData);
   if (cv.error) fieldErrors.cv = cv.error;
 
@@ -150,9 +147,10 @@ export async function createCandidate(
   }
 
   // AVG standaard aan: toestemmingsrecord hoort bij het aanmaken zelf.
+  // Methode is altijd e-mail (de AVG-mail wordt per e-mail verstuurd).
   const { error: consentError } = await supabase.from("consents").insert({
     candidate_id: candidate.id,
-    method: consentMethod,
+    method: "E-mail",
   });
   if (consentError) {
     await supabase.from("candidates").delete().eq("id", candidate.id);

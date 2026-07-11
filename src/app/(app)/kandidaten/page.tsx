@@ -32,13 +32,33 @@ export default async function KandidatenPage({
   const params = await searchParams;
   const q = typeof params.q === "string" ? params.q.trim() : "";
   const plaats = typeof params.plaats === "string" ? params.plaats : "";
+  const functie = typeof params.functie === "string" ? params.functie : "";
+  const vacature = typeof params.vacature === "string" ? params.vacature : "";
   const statusFilter =
     typeof params.status === "string" ? params.status : "actief";
-  const avgFilter = typeof params.avg === "string" ? params.avg : "alle";
   const filtersActief =
-    q !== "" || plaats !== "" || statusFilter !== "actief" || avgFilter !== "alle";
+    q !== "" ||
+    plaats !== "" ||
+    functie !== "" ||
+    vacature !== "" ||
+    statusFilter !== "actief";
 
   const supabase = await createClient();
+
+  // Vacaturefilter: eerst de gekoppelde kandidaat-id's ophalen.
+  let vacatureKandidaatIds: string[] | null = null;
+  if (vacature) {
+    const { data: apps } = await supabase
+      .from("applications")
+      .select("candidate_id")
+      .eq("vacancy_id", vacature);
+    vacatureKandidaatIds = (apps ?? []).map((a) => a.candidate_id);
+    // Geldige nil-UUID als sentinel: matcht niets, maar voorkomt een
+    // uuid-castfout bij een lege .in()-lijst.
+    if (vacatureKandidaatIds.length === 0) {
+      vacatureKandidaatIds = ["00000000-0000-0000-0000-000000000000"];
+    }
+  }
 
   let query = supabase
     .from("candidates")
@@ -48,9 +68,9 @@ export default async function KandidatenPage({
   if (statusFilter === "actief" || statusFilter === "gearchiveerd") {
     query = query.eq("status", statusFilter);
   }
-  if (plaats) {
-    query = query.eq("city", plaats);
-  }
+  if (plaats) query = query.eq("city", plaats);
+  if (functie) query = query.eq("current_role", functie);
+  if (vacatureKandidaatIds) query = query.in("id", vacatureKandidaatIds);
   if (q) {
     const veilig = q.replace(/[%_,()]/g, " ").trim();
     if (veilig) {
@@ -60,23 +80,38 @@ export default async function KandidatenPage({
     }
   }
 
-  const [{ data: rows }, { data: stedenRows }] = await Promise.all([
-    query,
-    supabase.from("candidates").select("city").not("city", "is", null),
-  ]);
+  const [{ data: rows }, { data: filterRows }, { data: vacatureRows }] =
+    await Promise.all([
+      query,
+      supabase
+        .from("candidates")
+        .select("city, current_role")
+        .eq("status", "actief"),
+      supabase
+        .from("vacancies")
+        .select("id, title")
+        .order("created_at", { ascending: false }),
+    ]);
 
-  const kandidaten = (rows ?? []).filter((kandidaat) => {
-    if (avgFilter === "alle") return true;
-    return avgStatus(kandidaat.consents).status === avgFilter;
-  });
+  const kandidaten = rows ?? [];
 
   const steden = [
     ...new Set(
-      (stedenRows ?? [])
+      (filterRows ?? [])
         .map((r) => r.city)
         .filter((c): c is string => !!c && c.trim() !== "")
     ),
   ].sort((a, b) => a.localeCompare(b, "nl"));
+
+  const functies = [
+    ...new Set(
+      (filterRows ?? [])
+        .map((r) => r.current_role)
+        .filter((c): c is string => !!c && c.trim() !== "")
+    ),
+  ].sort((a, b) => a.localeCompare(b, "nl"));
+
+  const vacatures = vacatureRows ?? [];
 
   const databaseLeeg = (rows ?? []).length === 0 && !filtersActief;
 
@@ -98,7 +133,11 @@ export default async function KandidatenPage({
         />
       ) : (
         <>
-          <KandidatenToolbar steden={steden} />
+          <KandidatenToolbar
+            steden={steden}
+            functies={functies}
+            vacatures={vacatures}
+          />
 
           {kandidaten.length === 0 ? (
             <EmptyState

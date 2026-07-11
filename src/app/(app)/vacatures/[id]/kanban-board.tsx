@@ -67,6 +67,9 @@ function CardBody({
         <Link
           href={`/kandidaten/${card.candidateId}`}
           className="text-sm font-medium hover:underline"
+          // draggable=false: anders kaapt de native anchor-drag van de browser
+          // de pointer en start dnd-kit z'n sleep niet (kaart beweegt niet).
+          draggable={false}
           onClick={(e) => e.stopPropagation()}
         >
           {card.name}
