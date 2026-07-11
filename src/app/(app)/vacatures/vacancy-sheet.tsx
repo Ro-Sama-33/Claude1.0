@@ -68,8 +68,8 @@ export function VacancySheet({ vacancy }: { vacancy?: Vacancy }) {
           </SheetTitle>
           <SheetDescription>
             {isNieuw
-              ? "Een vacature heeft alleen een titel; kandidaten koppel je erna via het funnel-bord."
-              : "Pas de titel of status aan."}
+              ? "Alleen de titel is verplicht. Bedrijf en locatie zijn optioneel; kandidaten koppel je erna via het funnel-bord."
+              : "Pas de titel, het bedrijf, de locatie of de status aan."}
           </SheetDescription>
         </SheetHeader>
         <form action={formAction} className="flex flex-col gap-5 px-4 pb-6">

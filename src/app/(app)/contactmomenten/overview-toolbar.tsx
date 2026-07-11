@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ListFilterIcon } from "lucide-react";
 
 import {
   Select,
@@ -32,8 +33,11 @@ export function OverviewToolbar() {
   }
 
   return (
-    <div className="mb-4 flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Sorteren / periode:</span>
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+        <ListFilterIcon className="size-4" aria-hidden />
+        Sorteren / periode:
+      </span>
       <Select value={huidig} onValueChange={zet}>
         <SelectTrigger aria-label="Sorteren of periode kiezen" className="min-w-56">
           <SelectValue />
