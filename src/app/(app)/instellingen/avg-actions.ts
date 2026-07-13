@@ -67,18 +67,36 @@ function render(template: string, naam: string, einddatum: string) {
  */
 export async function sendAvgReminders(): Promise<AvgEmailState> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Je sessie is verlopen. Log opnieuw in." };
 
-  const [{ data: kandidaten }, { data: settings }] = await Promise.all([
-    supabase
-      .from("candidates")
-      .select("id, first_name, last_name, email, consents(granted_at, expires_at)")
-      .eq("status", "actief"),
-    supabase
-      .from("app_settings")
-      .select("avg_email_subject, avg_email_body")
-      .eq("id", true)
-      .maybeSingle(),
-  ]);
+  const [{ data: kandidaten }, { data: settings }, { data: eigenProfiel }] =
+    await Promise.all([
+      supabase
+        .from("candidates")
+        .select(
+          "id, first_name, last_name, email, owner:profiles(full_name, email), consents(granted_at, expires_at)"
+        )
+        .eq("status", "actief"),
+      supabase
+        .from("app_settings")
+        .select("avg_email_subject, avg_email_body")
+        .eq("id", true)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .maybeSingle(),
+    ]);
+
+  // Wie geen eigen beheerder heeft, valt terug op degene die nu verstuurt.
+  const fallbackBeheerder = {
+    full_name: eigenProfiel?.full_name?.trim() || "Jump Into People",
+    email: eigenProfiel?.email?.trim() || user.email || "",
+  };
 
   const ontvangers = (kandidaten ?? [])
     .map((k) => ({ ...k, avg: avgStatus(k.consents) }))
@@ -101,10 +119,18 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
   const subject = settings?.avg_email_subject ?? "Verlenging AVG-toestemming";
   const template = settings?.avg_email_body ?? "";
 
+  // RESEND_FROM kan een kaal adres zijn of al "Naam <adres>"; we gebruiken
+  // alleen het adres en zetten daar de naam van de beheerder voor.
+  const fromAdres = from.match(/<([^>]+)>/)?.[1] ?? from;
+
   let verstuurd = 0;
   for (const k of ontvangers) {
     const naam = `${k.first_name} ${k.last_name}`;
     const einddatum = formatDate(k.avg.expiresAt);
+    const beheerder = {
+      full_name: k.owner?.full_name?.trim() || fallbackBeheerder.full_name,
+      email: k.owner?.email?.trim() || fallbackBeheerder.email,
+    };
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -112,7 +138,11 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from,
+        // Afzendernaam = beheerder; het adres blijft het geverifieerde
+        // domeinadres (eis van e-mailproviders), antwoorden gaan naar de
+        // beheerder zelf.
+        from: `${beheerder.full_name.replaceAll('"', "")} <${fromAdres}>`,
+        ...(beheerder.email ? { reply_to: beheerder.email } : {}),
         to: k.email,
         subject,
         text: render(template, naam, einddatum),
@@ -122,6 +152,6 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
   }
 
   return {
-    success: `AVG-mail verstuurd naar ${verstuurd} van ${ontvangers.length} kandidaten.`,
+    success: `AVG-mail verstuurd naar ${verstuurd} van ${ontvangers.length} kandidaten, namens de beheerder van elke kandidaat.`,
   };
 }

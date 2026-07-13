@@ -76,7 +76,7 @@ export default async function KandidaatProfielPage({
   const { data: kandidaat } = await supabase
     .from("candidates")
     .select(
-      "*, consents(id, granted_at, expires_at, method, status), candidate_notes(id, body, created_at, updated_at, created_by, author:profiles(full_name)), applications(id, stage_id, vacancy:vacancies(id, title, status)), contact_moments(id, type, occurred_at, note, author:profiles(full_name))"
+      "*, owner:profiles(full_name), consents(id, granted_at, expires_at, method, status), candidate_notes(id, body, created_at, updated_at, created_by, author:profiles(full_name)), applications(id, stage_id, vacancy:vacancies(id, title, status)), contact_moments(id, type, occurred_at, note, author:profiles(full_name))"
     )
     .eq("id", id)
     .maybeSingle();
@@ -290,6 +290,10 @@ export default async function KandidaatProfielPage({
                   waarde={kandidaat.current_role}
                 />
                 <GegevensRij label="Bron" waarde={kandidaat.source} />
+                <GegevensRij
+                  label="Beheerder"
+                  waarde={kandidaat.owner?.full_name?.trim() || null}
+                />
               </dl>
             </CardContent>
           </Card>
