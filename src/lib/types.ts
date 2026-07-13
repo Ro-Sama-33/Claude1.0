@@ -151,6 +151,7 @@ export type Database = {
           id: string
           last_contact_at: string | null
           last_name: string
+          owner_id: string | null
           phone: string | null
           salary_indication: string | null
           source: string | null
@@ -170,6 +171,7 @@ export type Database = {
           id?: string
           last_contact_at?: string | null
           last_name: string
+          owner_id?: string | null
           phone?: string | null
           salary_indication?: string | null
           source?: string | null
@@ -189,13 +191,22 @@ export type Database = {
           id?: string
           last_contact_at?: string | null
           last_name?: string
+          owner_id?: string | null
           phone?: string | null
           salary_indication?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "candidates_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       consents: {
         Row: {
@@ -342,18 +353,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          email: string
           full_name: string
           id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          email?: string
           full_name?: string
           id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          email?: string
           full_name?: string
           id?: string
           updated_at?: string

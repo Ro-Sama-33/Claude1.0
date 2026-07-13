@@ -84,7 +84,10 @@ export function AvgEmailSettings({
             <p className="text-sm font-medium">Nu versturen</p>
             <p className="text-xs text-muted-foreground">
               Stuurt deze mail naar iedereen van wie de toestemming binnen 30
-              dagen verloopt.
+              dagen verloopt. Elke mail gaat uit naam van de beheerder van de
+              kandidaat (de collega die de kandidaat heeft aangemaakt);
+              antwoorden komen bij die collega binnen. Kandidaten zonder
+              beheerder krijgen de mail uit jouw naam.
             </p>
             {verstuurState?.error && (
               <p role="alert" className="mt-2 text-xs text-danger-deep">

@@ -139,7 +139,8 @@ export async function createCandidate(
 
   const { data: candidate, error: insertError } = await supabase
     .from("candidates")
-    .insert(parsed.data)
+    // De aanmaker wordt beheerder: de AVG-mail gaat namens deze recruiter.
+    .insert({ ...parsed.data, owner_id: user.id })
     .select("id")
     .single();
   if (insertError || !candidate) {
