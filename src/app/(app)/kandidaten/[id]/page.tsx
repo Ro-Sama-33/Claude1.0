@@ -11,6 +11,10 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 
+import {
+  ApplicationStageControl,
+  type StageOptie,
+} from "./application-stage-control";
 import { NotesSection, type NoteView } from "./notes-section";
 import { ProfileActions } from "./profile-actions";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +76,7 @@ export default async function KandidaatProfielPage({
   const { data: kandidaat } = await supabase
     .from("candidates")
     .select(
-      "*, consents(id, granted_at, expires_at, method, status), candidate_notes(id, body, created_at, updated_at, created_by, author:profiles(full_name)), applications(id, vacancy:vacancies(id, title, status), stage:pipeline_stages(name, color)), contact_moments(id, type, occurred_at, note, author:profiles(full_name))"
+      "*, consents(id, granted_at, expires_at, method, status), candidate_notes(id, body, created_at, updated_at, created_by, author:profiles(full_name)), applications(id, stage_id, vacancy:vacancies(id, title, status)), contact_moments(id, type, occurred_at, note, author:profiles(full_name))"
     )
     .eq("id", id)
     .maybeSingle();
@@ -80,19 +84,27 @@ export default async function KandidaatProfielPage({
   if (!kandidaat) notFound();
 
   // Gekoppelde vacatures (nieuwste eerst) + open vacatures waaraan nog niet
-  // gekoppeld, voor de "Koppel aan vacature"-actie.
+  // gekoppeld, voor de "Koppel aan vacature"-actie. Fases voor het
+  // fase-keuzemenu per koppeling.
   const koppelingen = [...kandidaat.applications].filter((a) => a.vacancy);
   const gekoppeldeVacatureIds = new Set(
     koppelingen.map((a) => a.vacancy!.id)
   );
-  const { data: openVacatures } = await supabase
-    .from("vacancies")
-    .select("id, title")
-    .eq("status", "open")
-    .order("created_at", { ascending: false });
+  const [{ data: openVacatures }, { data: stageRows }] = await Promise.all([
+    supabase
+      .from("vacancies")
+      .select("id, title")
+      .eq("status", "open")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("pipeline_stages")
+      .select("id, name, color")
+      .order("position", { ascending: true }),
+  ]);
   const linkableVacancies = (openVacatures ?? []).filter(
     (v) => !gekoppeldeVacatureIds.has(v.id)
   );
+  const fases: StageOptie[] = stageRows ?? [];
 
   const avg = avgStatus(kandidaat.consents);
   const badge = avgBadge[avg.status];
@@ -223,6 +235,49 @@ export default async function KandidaatProfielPage({
         <div className="flex flex-col gap-4">
           <Card className="gap-3 py-5">
             <CardHeader>
+              <CardTitle>Gekoppelde vacatures</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {koppelingen.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nog geen gekoppelde vacatures. Gebruik &ldquo;Koppel aan
+                  vacature&rdquo; hierboven.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {koppelingen.map((app) => (
+                    <li
+                      key={app.id}
+                      className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3"
+                    >
+                      <Link
+                        href={`/vacatures/${app.vacancy!.id}`}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {app.vacancy!.title}
+                        {app.vacancy!.status === "gesloten" && (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            (gesloten)
+                          </span>
+                        )}
+                      </Link>
+                      <ApplicationStageControl
+                        applicationId={app.id}
+                        vacancyId={app.vacancy!.id}
+                        candidateId={kandidaat.id}
+                        stageId={app.stage_id}
+                        stages={fases}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="gap-3 py-5">
+            <CardHeader>
               <CardTitle>Contactgegevens</CardTitle>
             </CardHeader>
             <CardContent>
@@ -262,56 +317,6 @@ export default async function KandidaatProfielPage({
                   waarde={kandidaat.availability}
                 />
               </dl>
-            </CardContent>
-          </Card>
-
-          <Card className="gap-3 py-5">
-            <CardHeader>
-              <CardTitle>Gekoppelde vacatures</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {koppelingen.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Nog geen gekoppelde vacatures. Gebruik &ldquo;Koppel aan
-                  vacature&rdquo; hierboven.
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {koppelingen.map((app) => (
-                    <li
-                      key={app.id}
-                      className="flex items-center justify-between gap-3"
-                    >
-                      <Link
-                        href={`/vacatures/${app.vacancy!.id}`}
-                        className="text-sm font-medium hover:underline"
-                      >
-                        {app.vacancy!.title}
-                        {app.vacancy!.status === "gesloten" && (
-                          <span className="text-muted-foreground">
-                            {" "}
-                            (gesloten)
-                          </span>
-                        )}
-                      </Link>
-                      {app.stage && (
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 gap-1.5"
-                          style={{ borderColor: app.stage.color }}
-                        >
-                          <span
-                            className="size-2 rounded-full"
-                            style={{ backgroundColor: app.stage.color }}
-                            aria-hidden
-                          />
-                          {app.stage.name}
-                        </Badge>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
             </CardContent>
           </Card>
         </div>
