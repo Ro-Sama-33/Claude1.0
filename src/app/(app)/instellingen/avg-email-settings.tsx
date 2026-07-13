@@ -87,8 +87,11 @@ export function AvgEmailSettings({
             <p className="text-xs text-muted-foreground">
               Stuurt deze mail naar iedereen van wie de toestemming binnen 30
               dagen verloopt. Elke mail gaat uit naam van de beheerder van de
-              kandidaat; antwoorden komen bij die collega binnen. Via de knop
-              in de mail verlengt de kandidaat zelf, of laat de gegevens
+              kandidaat — heeft die een adres op hetzelfde domein als het
+              afzendadres, dan wordt de mail rechtstreeks vanaf het eigen
+              adres van de beheerder verstuurd; anders komen antwoorden via
+              het antwoordadres bij die collega binnen. Via de knop in de
+              mail verlengt de kandidaat zelf, of laat de gegevens
               verwijderen — dat wordt direct verwerkt en je ziet het terug in
               de meldingen. Wie 30 dagen na de vervaldatum niet heeft
               gereageerd, wordt automatisch verwijderd.
