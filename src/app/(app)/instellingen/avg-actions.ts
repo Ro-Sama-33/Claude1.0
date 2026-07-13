@@ -155,6 +155,10 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
   // RESEND_FROM kan een kaal adres zijn of al "Naam <adres>"; we gebruiken
   // alleen het adres en zetten daar de naam van de beheerder voor.
   const fromAdres = from.match(/<([^>]+)>/)?.[1] ?? from;
+  // Beheerders met een adres op hetzelfde (geverifieerde) domein mailen
+  // rechtstreeks vanaf hun eigen adres; anderen via het vaste adres met
+  // hun eigen adres als antwoordadres.
+  const fromDomein = fromAdres.split("@")[1]?.toLowerCase() ?? "";
 
   // Basis-URL voor de persoonlijke AVG-link, afgeleid van het domein waarop
   // de recruiter nu werkt (werkt zonder extra configuratie op Vercel).
@@ -176,6 +180,11 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
       full_name: k.owner?.full_name?.trim() || fallbackBeheerder.full_name,
       email: k.owner?.email?.trim() || fallbackBeheerder.email,
     };
+    const eigenAdres =
+      fromDomein &&
+      beheerder.email.toLowerCase().endsWith(`@${fromDomein}`)
+        ? beheerder.email
+        : null;
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -183,11 +192,12 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // Afzendernaam = beheerder; het adres blijft het geverifieerde
-        // domeinadres (eis van e-mailproviders), antwoorden gaan naar de
-        // beheerder zelf.
-        from: `${beheerder.full_name.replaceAll('"', "")} <${fromAdres}>`,
-        ...(beheerder.email ? { reply_to: beheerder.email } : {}),
+        // Eigen adres van de beheerder als dat op het geverifieerde domein
+        // zit; anders het vaste adres met de beheerder als antwoordadres.
+        from: `${beheerder.full_name.replaceAll('"', "")} <${eigenAdres ?? fromAdres}>`,
+        ...(!eigenAdres && beheerder.email
+          ? { reply_to: beheerder.email }
+          : {}),
         to: k.email,
         subject,
         html: htmlMail(tekst, linkUrl),
