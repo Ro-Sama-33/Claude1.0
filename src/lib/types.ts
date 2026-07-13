@@ -140,6 +140,7 @@ export type Database = {
       candidates: {
         Row: {
           availability: string | null
+          avg_token: string
           city: string | null
           contract_preference: string | null
           created_at: string
@@ -160,6 +161,7 @@ export type Database = {
         }
         Insert: {
           availability?: string | null
+          avg_token?: string
           city?: string | null
           contract_preference?: string | null
           created_at?: string
@@ -180,6 +182,7 @@ export type Database = {
         }
         Update: {
           availability?: string | null
+          avg_token?: string
           city?: string | null
           contract_preference?: string | null
           created_at?: string
@@ -409,13 +412,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      avg_pagina: {
+        Args: { p_token: string }
+        Returns: {
+          voornaam: string
+          einddatum: string | null
+          kandidaat_status: Database["public"]["Enums"]["candidate_status"]
+        }[]
+      }
+      avg_verleng: { Args: { p_token: string }; Returns: string | null }
+      avg_verwijder: { Args: { p_token: string }; Returns: boolean }
       run_daily_checks: { Args: never; Returns: undefined }
     }
     Enums: {
       candidate_status: "actief" | "gearchiveerd" | "geanonimiseerd"
       consent_status: "actief" | "verloopt_binnenkort" | "verlopen"
       contact_type: "gebeld" | "gemaild" | "gesprek" | "overig"
-      notification_type: "avg_verloopt" | "avg_verlopen" | "geen_contact_3m"
+      notification_type:
+        | "avg_verloopt"
+        | "avg_verlopen"
+        | "avg_verlengd"
+        | "avg_verwijderd"
+        | "geen_contact_3m"
       vacancy_status: "open" | "gesloten"
     }
     CompositeTypes: {

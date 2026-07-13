@@ -65,7 +65,9 @@ export function AvgEmailSettings({
           />
           <p className="text-xs text-muted-foreground">
             Gebruik <code>{"{{naam}}"}</code> en <code>{"{{einddatum}}"}</code>{" "}
-            als plaatshouders; die worden per kandidaat ingevuld.
+            als plaatshouders; die worden per kandidaat ingevuld. Onder de
+            tekst komt automatisch een persoonlijke knop waarmee de kandidaat
+            de toestemming verlengt of de gegevens laat verwijderen.
           </p>
         </div>
 
@@ -85,9 +87,11 @@ export function AvgEmailSettings({
             <p className="text-xs text-muted-foreground">
               Stuurt deze mail naar iedereen van wie de toestemming binnen 30
               dagen verloopt. Elke mail gaat uit naam van de beheerder van de
-              kandidaat (de collega die de kandidaat heeft aangemaakt);
-              antwoorden komen bij die collega binnen. Kandidaten zonder
-              beheerder krijgen de mail uit jouw naam.
+              kandidaat; antwoorden komen bij die collega binnen. Via de knop
+              in de mail verlengt de kandidaat zelf, of laat de gegevens
+              verwijderen — dat wordt direct verwerkt en je ziet het terug in
+              de meldingen. Wie 30 dagen na de vervaldatum niet heeft
+              gereageerd, wordt automatisch verwijderd.
             </p>
             {verstuurState?.error && (
               <p role="alert" className="mt-2 text-xs text-danger-deep">

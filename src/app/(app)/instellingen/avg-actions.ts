@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import { avgStatus } from "@/lib/avg";
@@ -59,6 +60,38 @@ function render(template: string, naam: string, einddatum: string) {
     .replaceAll("{{einddatum}}", einddatum);
 }
 
+function escapeHtml(tekst: string) {
+  return tekst
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+/**
+ * HTML-versie van de mail: de (bewerkbare) tekst + een knop naar de
+ * persoonlijke AVG-pagina waar de kandidaat verlengt of laat verwijderen.
+ */
+function htmlMail(tekst: string, linkUrl: string) {
+  const alineas = escapeHtml(tekst)
+    .split("\n\n")
+    .map(
+      (p) =>
+        `<p style="margin:0 0 16px;line-height:1.6;">${p.replaceAll("\n", "<br />")}</p>`
+    )
+    .join("");
+  return `<div style="margin:0 auto;max-width:560px;padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1F1A2E;">
+${alineas}
+<p style="margin:24px 0;">
+  <a href="${linkUrl}" style="display:inline-block;background-color:#5B2D90;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:bold;">Geef je keuze door</a>
+</p>
+<p style="margin:0 0 8px;font-size:13px;color:#6B6580;line-height:1.6;">
+  Werkt de knop niet? Kopieer dan deze link naar je browser:<br />
+  <a href="${linkUrl}" style="color:#5B2D90;">${linkUrl}</a>
+</p>
+</div>`;
+}
+
 /**
  * Verstuurt de AVG-mail naar iedereen wiens toestemming binnen 30 dagen
  * verloopt. Echt versturen gebeurt via Resend zodra RESEND_API_KEY en
@@ -77,7 +110,7 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
       supabase
         .from("candidates")
         .select(
-          "id, first_name, last_name, email, owner:profiles(full_name, email), consents(granted_at, expires_at)"
+          "id, first_name, last_name, email, avg_token, owner:profiles(full_name, email), consents(granted_at, expires_at)"
         )
         .eq("status", "actief"),
       supabase
@@ -123,10 +156,22 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
   // alleen het adres en zetten daar de naam van de beheerder voor.
   const fromAdres = from.match(/<([^>]+)>/)?.[1] ?? from;
 
+  // Basis-URL voor de persoonlijke AVG-link, afgeleid van het domein waarop
+  // de recruiter nu werkt (werkt zonder extra configuratie op Vercel).
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  if (!host) {
+    return { error: "De site-URL kon niet worden bepaald. Probeer het opnieuw." };
+  }
+  const basisUrl = `${proto}://${host}`;
+
   let verstuurd = 0;
   for (const k of ontvangers) {
     const naam = `${k.first_name} ${k.last_name}`;
     const einddatum = formatDate(k.avg.expiresAt);
+    const linkUrl = `${basisUrl}/avg/${k.avg_token}`;
+    const tekst = render(template, naam, einddatum);
     const beheerder = {
       full_name: k.owner?.full_name?.trim() || fallbackBeheerder.full_name,
       email: k.owner?.email?.trim() || fallbackBeheerder.email,
@@ -145,7 +190,8 @@ export async function sendAvgReminders(): Promise<AvgEmailState> {
         ...(beheerder.email ? { reply_to: beheerder.email } : {}),
         to: k.email,
         subject,
-        text: render(template, naam, einddatum),
+        html: htmlMail(tekst, linkUrl),
+        text: `${tekst}\n\nGeef je keuze door (verlengen of verwijderen) via:\n${linkUrl}`,
       }),
     });
     if (res.ok) verstuurd += 1;
