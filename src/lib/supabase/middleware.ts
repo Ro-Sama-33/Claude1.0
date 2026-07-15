@@ -4,7 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "./config";
 
 /** Routes die zonder inloggen bereikbaar zijn. */
-const PUBLIC_PATHS = ["/login", "/wachtwoord-vergeten", "/wachtwoord-herstellen"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/aanmelden",
+  "/wachtwoord-vergeten",
+  "/wachtwoord-herstellen",
+];
 
 /**
  * Ververst de auth-sessie op elke request en beschermt alle overige routes:
