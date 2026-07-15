@@ -269,10 +269,10 @@ export function CandidateForm({
           <Separator />
           <Sectie titel="AVG-toestemming">
             <p className="text-xs text-muted-foreground">
-              De AVG-toestemming wordt automatisch vastgelegd (geldt 365 dagen)
-              en verloopt-melding + verzoek gaan per e-mail. Daarom is het
-              e-mailadres verplicht. 30 dagen vóór de einddatum krijg je een
-              melding om te verlengen.
+              De AVG-toestemming wordt automatisch vastgelegd (geldt 365
+              dagen). 30 dagen vóór de einddatum krijgt het team een melding;
+              de beheerder belt of mailt de kandidaat en verlengt daarna
+              handmatig. Daarom zijn contactgegevens (e-mail) verplicht.
             </p>
           </Sectie>
         </>

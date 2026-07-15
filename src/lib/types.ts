@@ -22,27 +22,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      app_settings: {
-        Row: {
-          avg_email_body: string
-          avg_email_subject: string
-          id: boolean
-          updated_at: string
-        }
-        Insert: {
-          avg_email_body?: string
-          avg_email_subject?: string
-          id?: boolean
-          updated_at?: string
-        }
-        Update: {
-          avg_email_body?: string
-          avg_email_subject?: string
-          id?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
       applications: {
         Row: {
           candidate_id: string
@@ -140,7 +119,6 @@ export type Database = {
       candidates: {
         Row: {
           availability: string | null
-          avg_token: string
           city: string | null
           contract_preference: string | null
           created_at: string
@@ -161,7 +139,6 @@ export type Database = {
         }
         Insert: {
           availability?: string | null
-          avg_token?: string
           city?: string | null
           contract_preference?: string | null
           created_at?: string
@@ -182,7 +159,6 @@ export type Database = {
         }
         Update: {
           availability?: string | null
-          avg_token?: string
           city?: string | null
           contract_preference?: string | null
           created_at?: string
@@ -412,16 +388,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      avg_pagina: {
-        Args: { p_token: string }
-        Returns: {
-          voornaam: string
-          einddatum: string | null
-          kandidaat_status: Database["public"]["Enums"]["candidate_status"]
-        }[]
-      }
-      avg_verleng: { Args: { p_token: string }; Returns: string | null }
-      avg_verwijder: { Args: { p_token: string }; Returns: boolean }
       run_daily_checks: { Args: never; Returns: undefined }
     }
     Enums: {
@@ -589,5 +555,3 @@ export type Notification =
   Database["public"]["Tables"]["notifications"]["Row"];
 export type NotificationType =
   Database["public"]["Enums"]["notification_type"];
-export type AppSettings =
-  Database["public"]["Tables"]["app_settings"]["Row"];
