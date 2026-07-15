@@ -7,6 +7,7 @@ import { getSupabaseEnv } from "./config";
 const PUBLIC_PATHS = [
   "/login",
   "/aanmelden",
+  "/auth/callback",
   "/wachtwoord-vergeten",
   "/wachtwoord-herstellen",
 ];

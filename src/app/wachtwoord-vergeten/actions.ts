@@ -30,7 +30,7 @@ export async function requestPasswordReset(
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${proto}://${host}/wachtwoord-herstellen`,
+    redirectTo: `${proto}://${host}/auth/callback?next=/wachtwoord-herstellen`,
   });
 
   return { message: neutraal };
