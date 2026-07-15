@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { CircleAlertIcon, Loader2Icon } from "lucide-react";
 
@@ -36,7 +37,15 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Wachtwoord</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Wachtwoord</Label>
+          <Link
+            href="/wachtwoord-vergeten"
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Wachtwoord vergeten?
+          </Link>
+        </div>
         <Input
           id="password"
           name="password"
