@@ -50,7 +50,9 @@ export default async function DashboardPage() {
       .eq("status", "open"),
     supabase
       .from("candidates")
-      .select("id, first_name, last_name, consents(granted_at, expires_at)")
+      .select(
+        "id, first_name, last_name, owner:profiles(full_name), consents(granted_at, expires_at)"
+      )
       .eq("status", "actief"),
     supabase
       .from("candidates")
@@ -66,6 +68,7 @@ export default async function DashboardPage() {
     .map((kandidaat) => ({
       id: kandidaat.id,
       naam: `${kandidaat.first_name} ${kandidaat.last_name}`,
+      beheerder: kandidaat.owner?.full_name?.trim() || null,
       ...avgStatus(kandidaat.consents),
     }))
     .filter(
@@ -145,7 +148,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-lg">AVG-acties nodig</CardTitle>
             <CardDescription>
               Kandidaten van wie de toestemming binnenkort verloopt of al
-              verlopen is.
+              verlopen is. Bel of mail de kandidaat en verleng na akkoord.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -173,6 +176,7 @@ export default async function DashboardPage() {
                         {k.status === "verlopen"
                           ? `Verlopen op ${formatDate(k.expiresAt)}`
                           : `Verloopt op ${formatDate(k.expiresAt)}`}
+                        {k.beheerder && ` · bel/mail door ${k.beheerder}`}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">

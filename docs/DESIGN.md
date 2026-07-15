@@ -61,7 +61,7 @@ Overzicht van alle contactmomenten met kandidaten in één tabel: kandidaat (met
 
 ### Instellingen
 - **Funnel-fases:** lijst met sleep-handvatten, naam en kleur bewerkbaar, fase toevoegen/verwijderen (verwijderen alleen als er geen kandidaten in staan, anders eerst verplaatsen)
-- **AVG-mail:** één bewerkbare, algemene mailtekst (onderwerp + tekst met plaatshouders `{{naam}}` / `{{einddatum}}`), plus "nu versturen" naar iedereen wiens toestemming binnen 30 dagen verloopt. De mail gaat uit naam van de beheerder van de kandidaat en bevat een persoonlijke knop naar een openbare AVG-pagina (`/avg/[token]`) waar de kandidaat zelf verlengt of de gegevens laat verwijderen — direct verwerkt, met melding in de bel. Wie 30 dagen na de vervaldatum niet reageert, wordt door de dagelijkse check automatisch verwijderd (geanonimiseerd).
+- **AVG-verlenging (handmatig):** de dagelijkse check zet 30 dagen vóór het verlopen (elke 365-dagen cyclus) een melding in de bel, met de beheerder van de kandidaat erbij. De beheerder belt of mailt de kandidaat zelf en klikt na akkoord op "Verleng AVG" (profiel of dashboard); zonder akkoord verwijdert de recruiter de kandidaat handmatig. Er is geen automatische mail, zelfbedieningspagina of automatische verwijdering.
 
 ## Skills bij het bouwen
 
