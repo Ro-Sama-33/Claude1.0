@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { LoginForm } from "./login-form";
 
@@ -24,9 +25,14 @@ export default function LoginPage() {
           <LoginForm />
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Nog geen account? Recruiters worden handmatig uitgenodigd door de
-          beheerder.
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Nog geen account?{" "}
+          <Link
+            href="/aanmelden"
+            className="font-medium text-primary hover:underline"
+          >
+            Toegang aanvragen
+          </Link>
         </p>
       </div>
     </div>

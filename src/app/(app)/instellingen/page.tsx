@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BellRingIcon, PhoneCallIcon, ShieldCheckIcon } from "lucide-react";
 
+import { AccessRequests, type AccessRequestRow } from "./access-requests";
 import { StageManager, type StageRow } from "./stage-manager";
 import { PageHeader } from "@/components/layout/page-header";
 import {
@@ -19,13 +20,21 @@ export const metadata: Metadata = {
 export default async function InstellingenPage() {
   const supabase = await createClient();
 
-  const [{ data: stageRows }, { data: appRows }] = await Promise.all([
-    supabase
-      .from("pipeline_stages")
-      .select("id, name, color, position")
-      .order("position", { ascending: true }),
-    supabase.from("applications").select("stage_id"),
-  ]);
+  const [{ data: stageRows }, { data: appRows }, { data: requestRows }] =
+    await Promise.all([
+      supabase
+        .from("pipeline_stages")
+        .select("id, name, color, position")
+        .order("position", { ascending: true }),
+      supabase.from("applications").select("stage_id"),
+      supabase
+        .from("access_requests")
+        .select("id, full_name, email, note, created_at")
+        .eq("status", "open")
+        .order("created_at", { ascending: true }),
+    ]);
+
+  const requests: AccessRequestRow[] = requestRows ?? [];
 
   const aantalPerFase = new Map<string, number>();
   for (const app of appRows ?? []) {
@@ -105,6 +114,27 @@ export default async function InstellingenPage() {
                 </li>
               ))}
             </ol>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Toegangsverzoeken
+              {requests.length > 0 && (
+                <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                  {requests.length}
+                </span>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Aanvragen via &ldquo;Toegang aanvragen&rdquo; op de inlogpagina.
+              Bij goedkeuren wordt een account aangemaakt en krijg je een
+              tijdelijk wachtwoord om te delen.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AccessRequests requests={requests} />
           </CardContent>
         </Card>
       </div>
