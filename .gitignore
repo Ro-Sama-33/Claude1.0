@@ -40,3 +40,6 @@ supabase/.branches
 # Python bytecode (van agent-skill scripts)
 __pycache__/
 *.pyc
+
+# lokale skill-symlinks (per agent-tool, gegenereerd door `skills add`)
+/.claude/
