@@ -58,7 +58,16 @@ export async function approveRequest(id: string): Promise<ApproveResult> {
       createError.code === "email_exists" ||
       /already been registered|already exists/i.test(createError.message);
     if (!bestaatAl) {
-      return { error: "Account aanmaken is niet gelukt. Probeer het opnieuw." };
+      const sleutelFout =
+        createError.status === 401 ||
+        createError.status === 403 ||
+        /not allowed|invalid|jwt|api key|unauthorized/i.test(
+          createError.message
+        );
+      const reden = sleutelFout
+        ? "de service-role sleutel klopt niet of mist rechten. Controleer SUPABASE_SERVICE_ROLE_KEY in Vercel (moet de 'service_role secret' zijn) en deploy opnieuw."
+        : createError.message;
+      return { error: `Account aanmaken is niet gelukt: ${reden}` };
     }
     // Account bestond al: verzoek gewoon afronden, geen nieuw wachtwoord.
     await supabase
