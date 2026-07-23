@@ -47,15 +47,6 @@ export function AccessRequests({ requests }: { requests: AccessRequestRow[] }) {
     setBezigId(null);
   }
 
-  if (requests.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Geen openstaande aanvragen. Nieuwe aanvragen (via de knop &ldquo;Toegang
-        aanvragen&rdquo; op de inlogpagina) verschijnen hier.
-      </p>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-3">
       {resultaat?.tempPassword && (
@@ -93,8 +84,14 @@ export function AccessRequests({ requests }: { requests: AccessRequestRow[] }) {
         </p>
       )}
 
-      <ul className="flex flex-col divide-y">
-        {requests.map((r) => (
+      {requests.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Geen openstaande aanvragen. Nieuwe aanvragen (via de knop
+          &ldquo;Toegang aanvragen&rdquo; op de inlogpagina) verschijnen hier.
+        </p>
+      ) : (
+        <ul className="flex flex-col divide-y">
+          {requests.map((r) => (
           <li key={r.id} className="flex flex-col gap-2 py-3 first:pt-0">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -140,8 +137,9 @@ export function AccessRequests({ requests }: { requests: AccessRequestRow[] }) {
               </div>
             </div>
           </li>
-        ))}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
