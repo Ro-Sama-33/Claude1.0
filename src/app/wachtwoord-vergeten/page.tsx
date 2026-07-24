@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowLeftIcon } from "lucide-react";
 
-import { LoginForm } from "./login-form";
+import { ForgotForm } from "./forgot-form";
 
 export const metadata: Metadata = {
-  title: "Inloggen",
+  title: "Wachtwoord vergeten",
 };
 
-export default function LoginPage() {
+export default function WachtwoordVergetenPage() {
   return (
     <div className="flex min-h-svh items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm">
@@ -15,23 +16,26 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
             J
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">JIP-ATS</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Wachtwoord vergeten
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Het recruitmentsysteem van Jump Into People
+            Vul je e-mailadres in; je krijgt een link om een nieuw wachtwoord
+            in te stellen.
           </p>
         </div>
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <LoginForm />
+          <ForgotForm />
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Nog geen account?{" "}
+        <p className="mt-6 text-center text-sm">
           <Link
-            href="/aanmelden"
-            className="font-medium text-primary hover:underline"
+            href="/login"
+            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
           >
-            Toegang aanvragen
+            <ArrowLeftIcon className="size-3.5" />
+            Terug naar inloggen
           </Link>
         </p>
       </div>

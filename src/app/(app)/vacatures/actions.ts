@@ -17,6 +17,14 @@ const titleSchema = z
   .min(1, "Geef de vacature een titel.")
   .max(160, "Maximaal 160 tekens.");
 
+const optioneelVeld = (max: number) => (value: FormDataEntryValue | null) => {
+  const v = String(value ?? "").trim();
+  return v === "" ? null : v.slice(0, max);
+};
+
+const bedrijf = optioneelVeld(160);
+const locatie = optioneelVeld(160);
+
 export async function createVacancy(
   _prev: VacancyFormState,
   formData: FormData
@@ -34,7 +42,11 @@ export async function createVacancy(
 
   const { data: vacancy, error } = await supabase
     .from("vacancies")
-    .insert({ title: parsed.data })
+    .insert({
+      title: parsed.data,
+      company: bedrijf(formData.get("company")),
+      location: locatie(formData.get("location")),
+    })
     .select("id")
     .single();
   if (error || !vacancy) {
@@ -62,7 +74,12 @@ export async function updateVacancy(
 
   const { error } = await supabase
     .from("vacancies")
-    .update({ title: parsed.data, status })
+    .update({
+      title: parsed.data,
+      status,
+      company: bedrijf(formData.get("company")),
+      location: locatie(formData.get("location")),
+    })
     .eq("id", vacancyId);
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -164,10 +181,10 @@ export async function moveApplication(
   vacancyId: string,
   toStageId: string,
   orderedIds: string[]
-) {
+): Promise<{ error?: string } | undefined> {
   const supabase = await createClient();
 
-  await Promise.all(
+  const results = await Promise.all(
     orderedIds.map((id, index) =>
       supabase
         .from("applications")
@@ -175,6 +192,73 @@ export async function moveApplication(
         .eq("id", id)
     )
   );
+  if (results.some((r) => r.error)) {
+    return {
+      error:
+        "De verplaatsing kon niet worden opgeslagen. Probeer het opnieuw.",
+    };
+  }
 
   revalidatePath(`/vacatures/${vacancyId}`);
+}
+
+/**
+ * Zet één sollicitatie in een andere fase (vanaf het kandidaatprofiel).
+ * De kaart komt achteraan in de doelkolom.
+ */
+export async function setApplicationStage(
+  applicationId: string,
+  stageId: string,
+  vacancyId: string,
+  candidateId: string
+): Promise<{ error?: string } | undefined> {
+  const supabase = await createClient();
+
+  const { count } = await supabase
+    .from("applications")
+    .select("*", { count: "exact", head: true })
+    .eq("vacancy_id", vacancyId)
+    .eq("stage_id", stageId);
+
+  const { error } = await supabase
+    .from("applications")
+    .update({ stage_id: stageId, position: count ?? 0 })
+    .eq("id", applicationId);
+  if (error) {
+    return { error: "De fase kon niet worden opgeslagen. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/vacatures/${vacancyId}`);
+  revalidatePath(`/kandidaten/${candidateId}`);
+}
+
+/**
+ * Wijst een sollicitatie af: verplaatst de kaart naar de fase "Afgewezen".
+ */
+export async function rejectApplication(
+  applicationId: string,
+  vacancyId: string,
+  candidateId: string
+): Promise<{ error?: string } | undefined> {
+  const supabase = await createClient();
+
+  const { data: afgewezen } = await supabase
+    .from("pipeline_stages")
+    .select("id")
+    .ilike("name", "afgewezen")
+    .limit(1)
+    .maybeSingle();
+  if (!afgewezen) {
+    return {
+      error:
+        'Er is geen funnel-fase "Afgewezen". Voeg die toe bij Instellingen.',
+    };
+  }
+
+  return setApplicationStage(
+    applicationId,
+    afgewezen.id,
+    vacancyId,
+    candidateId
+  );
 }

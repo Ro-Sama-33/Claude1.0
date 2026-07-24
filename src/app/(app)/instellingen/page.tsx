@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import { BellRingIcon, PhoneCallIcon, ShieldCheckIcon } from "lucide-react";
 
+import { AccessRequests, type AccessRequestRow } from "./access-requests";
 import { StageManager, type StageRow } from "./stage-manager";
 import { PageHeader } from "@/components/layout/page-header";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -20,13 +20,21 @@ export const metadata: Metadata = {
 export default async function InstellingenPage() {
   const supabase = await createClient();
 
-  const [{ data: stageRows }, { data: appRows }] = await Promise.all([
-    supabase
-      .from("pipeline_stages")
-      .select("id, name, color, position")
-      .order("position", { ascending: true }),
-    supabase.from("applications").select("stage_id"),
-  ]);
+  const [{ data: stageRows }, { data: appRows }, { data: requestRows }] =
+    await Promise.all([
+      supabase
+        .from("pipeline_stages")
+        .select("id, name, color, position")
+        .order("position", { ascending: true }),
+      supabase.from("applications").select("stage_id"),
+      supabase
+        .from("access_requests")
+        .select("id, full_name, email, note, created_at")
+        .eq("status", "open")
+        .order("created_at", { ascending: true }),
+    ]);
+
+  const requests: AccessRequestRow[] = requestRows ?? [];
 
   const aantalPerFase = new Map<string, number>();
   for (const app of appRows ?? []) {
@@ -40,11 +48,32 @@ export default async function InstellingenPage() {
     count: aantalPerFase.get(s.id) ?? 0,
   }));
 
+  const stappen = [
+    {
+      icon: BellRingIcon,
+      titel: "Melding",
+      tekst:
+        "30 dagen vóór het verlopen van de toestemming (elke 365 dagen) verschijnt een melding in de bel, met de beheerder van de kandidaat erbij.",
+    },
+    {
+      icon: PhoneCallIcon,
+      titel: "Bellen of mailen",
+      tekst:
+        "De beheerder neemt zelf contact op met de kandidaat en vraagt of de gegevens bewaard mogen blijven.",
+    },
+    {
+      icon: ShieldCheckIcon,
+      titel: "Verlengen of verwijderen",
+      tekst:
+        'Akkoord? Klik op "Verleng AVG" op het profiel of dashboard (opnieuw 365 dagen). Geen akkoord of geen reactie? Verwijder de kandidaat via het profiel.',
+    },
+  ];
+
   return (
     <>
       <PageHeader
         title="Instellingen"
-        description="Beheer de funnel-fases en de AVG-teksten."
+        description="Beheer de funnel-fases en bekijk hoe de AVG-verlenging werkt."
       />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -63,18 +92,49 @@ export default async function InstellingenPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">AVG</CardTitle>
+            <CardTitle className="text-lg">AVG-verlenging</CardTitle>
             <CardDescription>
-              Teksten van de toestemmingsmelding en (optioneel) de
-              verlengingsmail.
+              Verlengen gebeurt handmatig, na persoonlijk contact door de
+              beheerder van de kandidaat.
             </CardDescription>
-            <CardAction>
-              <Badge variant="secondary">Fase 4</Badge>
-            </CardAction>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Nog niet beschikbaar. Toestemming staat straks standaard aan:
-            365 dagen geldig, met een melding 30 dagen vóór de einddatum.
+          <CardContent>
+            <ol className="flex flex-col gap-4">
+              {stappen.map((stap, i) => (
+                <li key={stap.titel} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <stap.icon className="size-4 text-primary" />
+                  </span>
+                  <div className="text-sm">
+                    <p className="font-medium">
+                      {i + 1}. {stap.titel}
+                    </p>
+                    <p className="mt-0.5 text-muted-foreground">{stap.tekst}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Toegangsverzoeken
+              {requests.length > 0 && (
+                <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                  {requests.length}
+                </span>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Aanvragen via &ldquo;Toegang aanvragen&rdquo; op de inlogpagina.
+              Bij goedkeuren wordt een account aangemaakt en krijg je een
+              tijdelijk wachtwoord om te delen.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AccessRequests requests={requests} />
           </CardContent>
         </Card>
       </div>

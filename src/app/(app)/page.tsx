@@ -50,7 +50,9 @@ export default async function DashboardPage() {
       .eq("status", "open"),
     supabase
       .from("candidates")
-      .select("id, first_name, last_name, consents(granted_at, expires_at)")
+      .select(
+        "id, first_name, last_name, owner:profiles(full_name), consents(granted_at, expires_at)"
+      )
       .eq("status", "actief"),
     supabase
       .from("candidates")
@@ -66,6 +68,7 @@ export default async function DashboardPage() {
     .map((kandidaat) => ({
       id: kandidaat.id,
       naam: `${kandidaat.first_name} ${kandidaat.last_name}`,
+      beheerder: kandidaat.owner?.full_name?.trim() || null,
       ...avgStatus(kandidaat.consents),
     }))
     .filter(
@@ -80,13 +83,29 @@ export default async function DashboardPage() {
   const contactReminders = geenContact ?? [];
 
   const stats = [
-    { label: "Actieve kandidaten", value: actieveKandidaten ?? 0, icon: UsersIcon },
-    { label: "Open vacatures", value: openVacatures ?? 0, icon: BriefcaseIcon },
-    { label: "AVG-acties", value: avgActies.length, icon: ShieldCheckIcon },
+    {
+      label: "Actieve kandidaten",
+      value: actieveKandidaten ?? 0,
+      icon: UsersIcon,
+      href: "/kandidaten",
+    },
+    {
+      label: "Open vacatures",
+      value: openVacatures ?? 0,
+      icon: BriefcaseIcon,
+      href: "/vacatures",
+    },
+    {
+      label: "AVG-acties",
+      value: avgActies.length,
+      icon: ShieldCheckIcon,
+      href: "/kandidaten",
+    },
     {
       label: "Contact-reminders",
       value: contactReminders.length,
       icon: BellRingIcon,
+      href: "/contactmomenten",
     },
   ];
 
@@ -99,21 +118,27 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="gap-2 py-5">
-            <CardHeader>
-              <CardDescription className="text-[0.78rem] font-medium">
-                {stat.label}
-              </CardDescription>
-              <CardAction>
-                <stat.icon className="size-4 text-muted-foreground" />
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold tabular-nums">
-                {stat.value}
-              </p>
-            </CardContent>
-          </Card>
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          >
+            <Card className="gap-2 py-5 transition-colors hover:border-ring">
+              <CardHeader>
+                <CardDescription className="text-[0.78rem] font-medium">
+                  {stat.label}
+                </CardDescription>
+                <CardAction>
+                  <stat.icon className="size-4 text-muted-foreground" />
+                </CardAction>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold tabular-nums">
+                  {stat.value}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
@@ -123,7 +148,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-lg">AVG-acties nodig</CardTitle>
             <CardDescription>
               Kandidaten van wie de toestemming binnenkort verloopt of al
-              verlopen is.
+              verlopen is. Bel of mail de kandidaat en verleng na akkoord.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -151,6 +176,7 @@ export default async function DashboardPage() {
                         {k.status === "verlopen"
                           ? `Verlopen op ${formatDate(k.expiresAt)}`
                           : `Verloopt op ${formatDate(k.expiresAt)}`}
+                        {k.beheerder && ` · bel/mail door ${k.beheerder}`}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">

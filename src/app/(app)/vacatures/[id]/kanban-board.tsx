@@ -67,6 +67,9 @@ function CardBody({
         <Link
           href={`/kandidaten/${card.candidateId}`}
           className="text-sm font-medium hover:underline"
+          // draggable=false: anders kaapt de native anchor-drag van de browser
+          // de pointer en start dnd-kit z'n sleep niet (kaart beweegt niet).
+          draggable={false}
           onClick={(e) => e.stopPropagation()}
         >
           {card.name}
@@ -97,7 +100,7 @@ function SortableCard({ card }: { card: KanbanCard }) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn("touch-none", isDragging && "opacity-40")}
+      className={cn("touch-none select-none", isDragging && "opacity-40")}
       {...attributes}
       {...listeners}
     >
@@ -164,6 +167,7 @@ export function KanbanBoard({
 }) {
   const [columns, setColumns] = React.useState<Columns>(initialColumns);
   const [activeCard, setActiveCard] = React.useState<KanbanCard | null>(null);
+  const [fout, setFout] = React.useState<string | null>(null);
 
   // Serverdata is de bron van waarheid; sync bij nieuwe props (bijv. na koppelen).
   React.useEffect(() => {
@@ -227,31 +231,45 @@ export function KanbanBoard({
     });
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveCard(null);
-    if (!over) return;
 
     const activeId = String(active.id);
-    const overId = String(over.id);
-    const container = findContainer(overId) ?? findContainer(activeId);
+    // Na handleDragOver zit de kaart al in de doelkolom; die kolom is dus
+    // leidend — ook als de muis buiten een droppable losgelaten wordt.
+    const container = findContainer(activeId);
     if (!container) return;
 
-    let ordered: string[] = [];
-    setColumns((prev) => {
-      const cards = prev[container];
-      const oldIndex = cards.findIndex((c) => c.applicationId === activeId);
-      const newIndex = cards.findIndex((c) => c.applicationId === overId);
-      const next =
-        oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex
-          ? arrayMove(cards, oldIndex, newIndex)
-          : cards;
-      ordered = next.map((c) => c.applicationId);
-      return { ...prev, [container]: next };
-    });
+    // Bereken de volgorde uit de huidige state (niet in de setState-updater:
+    // die draait pas ná deze handler, waardoor de lijst hier leeg zou zijn en
+    // er niets in de database zou worden opgeslagen).
+    const cards = columns[container];
+    const overId = over ? String(over.id) : null;
+    const oldIndex = cards.findIndex((c) => c.applicationId === activeId);
+    const newIndex = overId
+      ? cards.findIndex((c) => c.applicationId === overId)
+      : -1;
+    const next =
+      oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex
+        ? arrayMove(cards, oldIndex, newIndex)
+        : cards;
+
+    setColumns((prev) => ({ ...prev, [container]: next }));
+    setFout(null);
 
     // Persisteer de doelkolom (bevat de verplaatste kaart met de nieuwe fase).
-    void moveApplication(vacancyId, container, ordered);
+    const res = await moveApplication(
+      vacancyId,
+      container,
+      next.map((c) => c.applicationId)
+    );
+    if (res?.error) {
+      // Terug naar de serverstand, zodat het bord niet liegt over wat er is
+      // opgeslagen.
+      setColumns(initialColumns);
+      setFout(res.error);
+    }
   }
 
   return (
@@ -263,6 +281,14 @@ export function KanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
+      {fout && (
+        <div
+          role="alert"
+          className="mb-3 rounded-lg bg-danger-soft px-3 py-2.5 text-sm text-danger-deep"
+        >
+          {fout}
+        </div>
+      )}
       <div className="flex gap-4 overflow-x-auto pb-4">
         {stages.map((stage) => (
           <Column

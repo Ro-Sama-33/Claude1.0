@@ -43,7 +43,7 @@ export default async function VacaturesPage() {
         <EmptyState
           icon={BriefcaseIcon}
           title="Nog geen vacatures"
-          description="Maak een vacature aan (alleen een titel) en koppel er daarna kandidaten aan via het kanban-bord."
+          description="Maak een vacature aan — alleen de titel is verplicht — en koppel er daarna kandidaten aan via het kanban-bord."
           action={<VacancySheet />}
         />
       ) : (
@@ -52,6 +52,8 @@ export default async function VacaturesPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>Titel</TableHead>
+                <TableHead>Bedrijf</TableHead>
+                <TableHead>Locatie</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Kandidaten</TableHead>
               </TableRow>
@@ -69,6 +71,12 @@ export default async function VacaturesPage() {
                       >
                         {vacancy.title}
                       </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {vacancy.company ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {vacancy.location ?? "—"}
                     </TableCell>
                     <TableCell>
                       <Badge

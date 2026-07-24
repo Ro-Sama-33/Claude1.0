@@ -2,7 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { BellIcon, CheckIcon, ShieldAlertIcon, ClockIcon } from "lucide-react";
+import {
+  BellIcon,
+  CheckIcon,
+  ClockIcon,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
+  Trash2Icon,
+} from "lucide-react";
 
 import {
   markAllNotificationsRead,
@@ -30,6 +37,8 @@ export type NotificationItem = {
 const ICON: Record<NotificationType, typeof ShieldAlertIcon> = {
   avg_verloopt: ClockIcon,
   avg_verlopen: ShieldAlertIcon,
+  avg_verlengd: ShieldCheckIcon,
+  avg_verwijderd: Trash2Icon,
   geen_contact_3m: ClockIcon,
 };
 

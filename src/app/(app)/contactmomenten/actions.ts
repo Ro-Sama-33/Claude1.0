@@ -49,7 +49,7 @@ function fieldErrors(
 }
 
 function revalidate(candidateId: string) {
-  revalidatePath("/kalender");
+  revalidatePath("/contactmomenten");
   revalidatePath("/kandidaten");
   revalidatePath(`/kandidaten/${candidateId}`);
   revalidatePath("/");

@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOutIcon } from "lucide-react";
+import Link from "next/link";
+import { LogOutIcon, UserCogIcon } from "lucide-react";
 
 import { logout } from "@/app/login/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,6 +40,12 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
           <p className="truncate text-xs text-muted-foreground">{email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/account">
+            <UserCogIcon />
+            Mijn account
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem variant="destructive" onSelect={() => logout()}>
           <LogOutIcon />
           Uitloggen

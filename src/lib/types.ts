@@ -22,6 +22,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           candidate_id: string
@@ -130,6 +171,7 @@ export type Database = {
           id: string
           last_contact_at: string | null
           last_name: string
+          owner_id: string | null
           phone: string | null
           salary_indication: string | null
           source: string | null
@@ -149,6 +191,7 @@ export type Database = {
           id?: string
           last_contact_at?: string | null
           last_name: string
+          owner_id?: string | null
           phone?: string | null
           salary_indication?: string | null
           source?: string | null
@@ -168,13 +211,22 @@ export type Database = {
           id?: string
           last_contact_at?: string | null
           last_name?: string
+          owner_id?: string | null
           phone?: string | null
           salary_indication?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "candidates_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       consents: {
         Row: {
@@ -321,18 +373,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          email: string
           full_name: string
           id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          email?: string
           full_name?: string
           id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          email?: string
           full_name?: string
           id?: string
           updated_at?: string
@@ -341,22 +396,28 @@ export type Database = {
       }
       vacancies: {
         Row: {
+          company: string | null
           created_at: string
           id: string
+          location: string | null
           status: Database["public"]["Enums"]["vacancy_status"]
           title: string
           updated_at: string
         }
         Insert: {
+          company?: string | null
           created_at?: string
           id?: string
+          location?: string | null
           status?: Database["public"]["Enums"]["vacancy_status"]
           title: string
           updated_at?: string
         }
         Update: {
+          company?: string | null
           created_at?: string
           id?: string
+          location?: string | null
           status?: Database["public"]["Enums"]["vacancy_status"]
           title?: string
           updated_at?: string
@@ -374,7 +435,12 @@ export type Database = {
       candidate_status: "actief" | "gearchiveerd" | "geanonimiseerd"
       consent_status: "actief" | "verloopt_binnenkort" | "verlopen"
       contact_type: "gebeld" | "gemaild" | "gesprek" | "overig"
-      notification_type: "avg_verloopt" | "avg_verlopen" | "geen_contact_3m"
+      notification_type:
+        | "avg_verloopt"
+        | "avg_verlopen"
+        | "avg_verlengd"
+        | "avg_verwijderd"
+        | "geen_contact_3m"
       vacancy_status: "open" | "gesloten"
     }
     CompositeTypes: {

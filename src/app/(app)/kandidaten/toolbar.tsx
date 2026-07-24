@@ -19,21 +19,22 @@ const STATUS_OPTIES = [
   { value: "alle", label: "Alle statussen" },
 ];
 
-const AVG_OPTIES = [
-  { value: "alle", label: "AVG: alle" },
-  { value: "actief", label: "AVG actief" },
-  { value: "verloopt_binnenkort", label: "Verloopt binnenkort" },
-  { value: "verlopen", label: "Verlopen" },
-];
+export type VacatureOptie = { id: string; title: string };
 
-export function KandidatenToolbar({ steden }: { steden: string[] }) {
+export function KandidatenToolbar({
+  steden,
+  functies,
+  vacatures,
+}: {
+  steden: string[];
+  functies: string[];
+  vacatures: VacatureOptie[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [zoekterm, setZoekterm] = React.useState(
-    searchParams.get("q") ?? ""
-  );
+  const [zoekterm, setZoekterm] = React.useState(searchParams.get("q") ?? "");
 
   const zetParam = React.useCallback(
     (naam: string, waarde: string, standaard: string) => {
@@ -86,6 +87,40 @@ export function KandidatenToolbar({ steden }: { steden: string[] }) {
       </Select>
 
       <Select
+        value={searchParams.get("functie") ?? "alle"}
+        onValueChange={(v) => zetParam("functie", v, "alle")}
+      >
+        <SelectTrigger aria-label="Filter op functie">
+          <SelectValue placeholder="Functie" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="alle">Alle functies</SelectItem>
+          {functies.map((functie) => (
+            <SelectItem key={functie} value={functie}>
+              {functie}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={searchParams.get("vacature") ?? "alle"}
+        onValueChange={(v) => zetParam("vacature", v, "alle")}
+      >
+        <SelectTrigger aria-label="Filter op vacature">
+          <SelectValue placeholder="Vacature" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="alle">Alle vacatures</SelectItem>
+          {vacatures.map((v) => (
+            <SelectItem key={v.id} value={v.id}>
+              {v.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
         value={searchParams.get("status") ?? "actief"}
         onValueChange={(v) => zetParam("status", v, "actief")}
       >
@@ -94,22 +129,6 @@ export function KandidatenToolbar({ steden }: { steden: string[] }) {
         </SelectTrigger>
         <SelectContent>
           {STATUS_OPTIES.map((optie) => (
-            <SelectItem key={optie.value} value={optie.value}>
-              {optie.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={searchParams.get("avg") ?? "alle"}
-        onValueChange={(v) => zetParam("avg", v, "alle")}
-      >
-        <SelectTrigger aria-label="Filter op AVG-status">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {AVG_OPTIES.map((optie) => (
             <SelectItem key={optie.value} value={optie.value}>
               {optie.label}
             </SelectItem>

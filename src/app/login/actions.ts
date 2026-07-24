@@ -25,11 +25,22 @@ export async function login(
   });
 
   if (error) {
+    const meldingen: Record<string, string> = {
+      invalid_credentials:
+        "Onjuiste combinatie van e-mailadres en wachtwoord.",
+      email_not_confirmed:
+        "Dit account is nog niet bevestigd. Neem contact op met de beheerder.",
+      over_request_rate_limit:
+        "Te veel pogingen. Wacht een paar minuten en probeer het opnieuw.",
+      user_banned:
+        "Dit account is geblokkeerd. Neem contact op met de beheerder.",
+    };
     return {
       error:
-        error.code === "invalid_credentials"
-          ? "Onjuiste combinatie van e-mailadres en wachtwoord."
-          : "Inloggen is niet gelukt. Probeer het later opnieuw.",
+        meldingen[error.code ?? ""] ??
+        `Inloggen is niet gelukt (${
+          error.code ?? error.status ?? "onbekend"
+        }). Probeer het later opnieuw.`,
     };
   }
 

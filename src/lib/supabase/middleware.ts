@@ -4,7 +4,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "./config";
 
 /** Routes die zonder inloggen bereikbaar zijn. */
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/aanmelden",
+  "/auth/callback",
+  "/wachtwoord-vergeten",
+  "/wachtwoord-herstellen",
+];
 
 /**
  * Ververst de auth-sessie op elke request en beschermt alle overige routes:
@@ -47,7 +53,9 @@ export async function updateSession(request: NextRequest) {
     return withCookies(NextResponse.redirect(redirectUrl), supabaseResponse);
   }
 
-  if (user && isPublic) {
+  // Alleen /login stuurt ingelogde gebruikers door; de openbare AVG-pagina
+  // moet ook voor ingelogde recruiters gewoon te bekijken zijn.
+  if (user && request.nextUrl.pathname.startsWith("/login")) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/";
     return withCookies(NextResponse.redirect(redirectUrl), supabaseResponse);
